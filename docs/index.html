@@ -57,6 +57,15 @@ ul.pages a{
   transition:border-color .15s ease, background .15s ease;
 }
 ul.pages a:hover{border-color:var(--accent);background:var(--accent-soft)}
+ul.pages .num{
+  display:block;
+  font-family:"IBM Plex Mono", monospace;
+  font-size:12px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:6px;
+}
 ul.pages .title{
   font-family:"Space Grotesk", sans-serif;
   font-weight:700;
@@ -74,7 +83,29 @@ ul.pages .desc{color:var(--muted);margin-top:4px;font-size:0.95rem}
 
   <ul class="pages">
     <li>
+      <a href="boxes-arrows-circles-block-diagrams.html">
+        <span class="num">Lesson 01 · start here</span>
+        <span class="title">Boxes, Arrows, Circles — Reading Block Diagrams</span>
+        <span class="desc">The three-symbol picture language every control system is drawn in — signals, blocks, summing junctions, and open vs. closed loops.</span>
+      </a>
+    </li>
+    <li>
+      <a href="close-the-loop-pid-control.html">
+        <span class="num">Lesson 02</span>
+        <span class="title">Close the Loop — Feedback &amp; PID Control</span>
+        <span class="desc">Measure, compare, correct: tune P, I, and D yourself on a live simulated elevator and learn what each term is actually for.</span>
+      </a>
+    </li>
+    <li>
+      <a href="push-first-feedforward-control.html">
+        <span class="num">Lesson 03</span>
+        <span class="title">Push First, Correct Later — Feedforward Control</span>
+        <span class="desc">Model the mechanism, predict the push it needs, and command it before any error exists — flywheels, arms, elevators, and WPILib's kS·kV·kA.</span>
+      </a>
+    </li>
+    <li>
       <a href="where-am-i-kalman-filters.html">
+        <span class="num">Lesson 04</span>
         <span class="title">Where Am I? — Sensor Fusion &amp; Kalman Filters</span>
         <span class="desc">How a robot combines dead reckoning and noisy absolute measurements into one confident position estimate.</span>
       </a>

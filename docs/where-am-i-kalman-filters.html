@@ -41,6 +41,15 @@ body{
 
 /* ---------- hero ---------- */
 header{padding:72px 0 40px}
+a.home{
+  display:inline-block;margin-bottom:22px;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink);text-decoration:none;
+  background:var(--panel);border:1.5px solid var(--line);
+  border-radius:999px;padding:8px 16px;
+  transition:border-color .15s ease, background .15s ease;
+}
+a.home:hover{border-color:var(--fused);background:var(--fused-soft)}
 .eyebrow{
   font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--muted);margin-bottom:14px;
@@ -87,19 +96,20 @@ strong{font-weight:600}
 .eq{
   margin-top:18px;padding:16px 20px;background:var(--panel);
   border:1px solid var(--line);border-radius:8px;max-width:64ch;
-  font-family:"IBM Plex Mono",monospace;font-size:15px;overflow-x:auto;
+  font-family:"IBM Plex Mono",monospace;font-size:15px;
 }
-.eq .line{white-space:nowrap;padding:3px 0;letter-spacing:.01em}
+.eq .line{padding:3px 0;letter-spacing:.01em}
 .eq .line b{color:var(--fused);font-weight:600;margin-right:6px}
 .eq .who{
   display:block;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);
   font-size:13.5px;color:var(--muted);font-family:"Public Sans",sans-serif;
   white-space:normal;line-height:1.7;
 }
-.eq .who code{
+.eq code{
   font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink);
   background:#EEF3F6;border:1px solid var(--line);border-radius:4px;padding:1px 6px;
 }
+.eq.glossary .line{font-family:"Public Sans",sans-serif;font-size:14.5px;color:var(--muted);line-height:1.9}
 .eq .who .note{display:block;margin-top:8px}
 .eq sub,.eq sup{font-size:11px}
 
@@ -172,6 +182,18 @@ button.ghost:hover{background:rgba(22,40,59,.06)}
 @media (prefers-reduced-motion:reduce){.bar-fill{transition:none}}
 
 .hint{margin-top:12px;font-size:14.5px;color:var(--muted);max-width:64ch}
+a.next{
+  display:block;margin-top:56px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px 24px;color:inherit;text-decoration:none;
+  transition:border-color .15s ease, background .15s ease;
+}
+a.next:hover{border-color:var(--fused);background:var(--fused-soft)}
+a.next .k{
+  display:block;font-family:"IBM Plex Mono",monospace;font-size:12px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;
+}
+a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15rem}
 .footer{
   margin-top:80px;padding-top:24px;border-top:1px solid var(--line);
   color:var(--muted);font-size:14.5px;font-family:"IBM Plex Mono",monospace;
@@ -186,6 +208,7 @@ button.ghost:hover{background:rgba(22,40,59,.06)}
 <div class="wrap">
 
 <header>
+  <a class="home" href="index.html">← All lessons</a>
   <div class="eyebrow">Sensor fusion · dead reckoning · GPS · Kalman filters</div>
   <h1>Where am I<span class="q">?</span><br>How a robot finds itself.</h1>
   <p class="sub">A robot has no eyes in the sky and no gut feeling. All it has are sensors — and every sensor lies a little. This is the story of how robots combine several unreliable answers into one reliable one.</p>
@@ -443,15 +466,25 @@ button.ghost:hover{background:rgba(22,40,59,.06)}
   <p><strong>3. Dead reckoning drifts.</strong> Adding up your own motions is smooth and fast, but errors pile up forever.</p>
   <p><strong>4. Global fixes are noisy but honest.</strong> GPS wobbles, but it never gets progressively lost — and a camera spotting mapped fiducial markers is the same kind of sensor, no satellites required. Any "here's where you are on the map" measurement plays this role.</p>
   <p><strong>5. Predict, then correct.</strong> The Kalman filter carries the estimate with dead reckoning, corrects with GPS, and sets the trust dial automatically — trusting measurements more when its own confidence bubble has grown.</p>
-  <div class="eq">
-    <div class="line">σ — typical error size&nbsp;&nbsp;·&nbsp;&nbsp;σ² — variance&nbsp;&nbsp;·&nbsp;&nbsp;z — a measurement</div>
-    <div class="line">x̂ — the estimate&nbsp;&nbsp;·&nbsp;&nbsp;P — its variance (the confidence bubble, squared)</div>
-    <div class="line">Q — process noise&nbsp;&nbsp;·&nbsp;&nbsp;R — measurement noise&nbsp;&nbsp;·&nbsp;&nbsp;(z − x̂) — innovation</div>
-    <div class="line">K = P/(P + R) — the Kalman gain: the trust dial, set automatically</div>
+  <div class="eq glossary">
+    <div class="line"><code>σ</code> — typical error size</div>
+    <div class="line"><code>σ²</code> — variance</div>
+    <div class="line"><code>z</code> — a measurement</div>
+    <div class="line"><code>x̂</code> — the estimate</div>
+    <div class="line"><code>P</code> — its variance (the confidence bubble, squared)</div>
+    <div class="line"><code>Q</code> — process noise</div>
+    <div class="line"><code>R</code> — measurement noise</div>
+    <div class="line"><code>(z − x̂)</code> — innovation</div>
+    <div class="line"><code>K = P/(P + R)</code> — the Kalman gain: the trust dial, set automatically</div>
     <span class="who">Pocket glossary — everything on this page in eight symbols.</span>
   </div>
   <p style="margin-top:22px">You'll find this exact loop inside phones, drones, self-driving cars, Mars rovers, and the robot navigation code in competition robotics — anywhere a machine has to answer the oldest navigation question there is: <em>where am I?</em></p>
 </section>
+
+<a class="next" href="index.html">
+  <span class="k">End of the series — more coming</span>
+  <span class="t">Back to all lessons →</span>
+</a>
 
 <div class="footer">Built as an interactive lesson · every simulation on this page runs the exact K = P/(P + R) loop from Part 5 — the numbers you see are the filter's real internal state, not an animation.</div>
 </div>
