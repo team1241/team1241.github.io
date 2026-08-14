@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Close the Loop — Feedback &amp; PID Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F7F9;
+  --grid:#DCE6EC;
+  --panel:#FFFFFF;
+  --ink:#16283B;
+  --muted:#5B7186;
+  --line:#C7D5DE;
+  --p:#E07B1F;       /* proportional: orange (the present) */
+  --i:#0B8F6B;       /* integral: green (the past) */
+  --d:#2076C7;       /* derivative: blue (the future) */
+  --sp:#7A4FD0;      /* setpoint / reference: violet */
+  --p-soft:#FBEEDD;
+  --i-soft:#DFF3EC;
+  --d-soft:#DFEBF8;
+  --sp-soft:#EFE8FB;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+
+body{
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    var(--paper);
+  background-size:28px 28px, 28px 28px, auto;
+  color:var(--ink);
+  font-family:"Public Sans", system-ui, -apple-system, sans-serif;
+  font-size:17px;
+  line-height:1.65;
+}
+.wrap{max-width:860px;margin:0 auto;padding:0 20px 96px}
+
+/* ---------- hero ---------- */
+header{padding:72px 0 40px;position:relative}
+a.home{
+  display:inline-block;margin-bottom:22px;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink);text-decoration:none;
+  background:var(--panel);border:1.5px solid var(--line);
+  border-radius:999px;padding:8px 16px;
+  transition:border-color .15s ease, background .15s ease;
+}
+a.home:hover{border-color:var(--p);background:var(--p-soft);color:var(--ink)}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:14px;
+}
+h1{
+  font-family:"Space Grotesk",sans-serif;font-weight:700;
+  font-size:clamp(38px,7vw,62px);line-height:1.05;letter-spacing:-0.02em;
+}
+h1 .q{color:var(--p)}
+.sub{margin-top:18px;max-width:56ch;color:var(--muted);font-size:19px}
+.legend{
+  display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:26px;
+  font-family:"IBM Plex Mono",monospace;font-size:13px;
+}
+.legend span{display:flex;align-items:center;gap:8px}
+.chip{width:22px;height:0;border-top:3px solid var(--ink);display:inline-block}
+.chip.dashed{border-top-style:dashed}
+
+/* hero loop motif */
+.hero-loop{position:absolute;right:8px;top:96px;width:112px;height:112px;opacity:.95}
+@media (max-width:760px){ .hero-loop{display:none} }
+
+/* ---------- sections ---------- */
+section{margin-top:64px}
+h2{
+  font-family:"Space Grotesk",sans-serif;font-weight:700;
+  font-size:clamp(26px,4.4vw,34px);letter-spacing:-0.015em;line-height:1.15;
+}
+.step{
+  font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted);
+  letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;
+}
+section p{margin-top:16px;max-width:64ch}
+strong{font-weight:600}
+.p-t{color:var(--p);font-weight:600}
+.i-t{color:var(--i);font-weight:600}
+.d-t{color:var(--d);font-weight:600}
+.sp-t{color:var(--sp);font-weight:600}
+a{color:var(--p);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:#B96317}
+
+.callout{
+  margin-top:22px;padding:16px 18px;background:var(--panel);
+  border:1px solid var(--line);border-left:4px solid var(--p);
+  border-radius:8px;max-width:64ch;
+}
+.callout.green{border-left-color:var(--i)}
+.callout.blue{border-left-color:var(--d)}
+.callout.violet{border-left-color:var(--sp)}
+
+/* ---------- equations ---------- */
+.eq{
+  margin-top:18px;padding:16px 20px;background:var(--panel);
+  border:1px solid var(--line);border-radius:8px;max-width:64ch;
+  font-family:"IBM Plex Mono",monospace;font-size:15px;
+}
+.eq .line{padding:3px 0;letter-spacing:.01em}
+.eq .line b{color:var(--p);font-weight:600;margin-right:6px}
+.eq .who{
+  display:block;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);
+  font-size:13.5px;color:var(--muted);font-family:"Public Sans",sans-serif;
+  white-space:normal;line-height:1.7;
+}
+.eq code{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink);
+  background:#EEF3F6;border:1px solid var(--line);border-radius:4px;padding:1px 6px;
+}
+.eq.glossary .line{font-family:"Public Sans",sans-serif;font-size:14.5px;color:var(--muted);line-height:1.9}
+.eq .who .note{display:block;margin-top:8px}
+.eq sub,.eq sup{font-size:11px}
+
+/* ---------- static block diagrams ---------- */
+.diagram{
+  margin-top:22px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 18px 8px;
+}
+.diagram svg{width:100%;height:auto;display:block}
+.diagram .cap{
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted);
+  padding:8px 4px 8px;line-height:1.6;
+}
+.bd-block{fill:#FBFDFE;stroke:var(--ink);stroke-width:1.6}
+.bd-block.pc{stroke:var(--p)}
+.bd-block.ic{stroke:var(--i)}
+.bd-block.dc{stroke:var(--d)}
+.bd-wire{stroke:var(--ink);stroke-width:1.6;fill:none}
+.bd-wire.pc{stroke:var(--p)}
+.bd-wire.ic{stroke:var(--i)}
+.bd-wire.dc{stroke:var(--d)}
+.bd-wire.spc{stroke:var(--sp)}
+.bd-label{font-family:"Space Grotesk",sans-serif;font-size:13.5px;font-weight:500;fill:var(--ink)}
+.bd-sig{font-family:"IBM Plex Mono",monospace;font-size:11.5px;fill:var(--muted)}
+.bd-sig.pc{fill:var(--p)} .bd-sig.ic{fill:var(--i)} .bd-sig.dc{fill:var(--d)} .bd-sig.spc{fill:var(--sp)}
+.bd-sum{fill:#FBFDFE;stroke:var(--ink);stroke-width:1.6}
+.pulse{fill:var(--ink)}
+.pulse.pc{fill:var(--p)} .pulse.ic{fill:var(--i)} .pulse.dc{fill:var(--d)} .pulse.spc{fill:var(--sp)}
+@media (prefers-reduced-motion: reduce){ .pulse{display:none} }
+
+/* ---------- widget shell ---------- */
+.widget{
+  margin-top:26px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:0 1px 0 rgba(22,40,59,.05), 0 10px 30px -18px rgba(22,40,59,.25);
+  overflow:hidden;
+}
+.widget-head{
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  padding:14px 18px;border-bottom:1px solid var(--line);
+  font-family:"IBM Plex Mono",monospace;font-size:13px;
+}
+.widget-head .name{font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.widget-head .tag{color:var(--muted)}
+.widget-body{padding:18px}
+canvas{display:block;width:100%;border:1px solid var(--line);border-radius:8px;background:#FBFDFE}
+
+.controls{display:flex;flex-wrap:wrap;gap:14px 26px;margin-top:16px;align-items:flex-end}
+.control{min-width:170px;flex:1}
+.control label{
+  display:flex;justify-content:space-between;
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted);
+  margin-bottom:6px;
+}
+.control label output{color:var(--ink);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--ink);cursor:pointer}
+button{
+  font-family:"Space Grotesk",sans-serif;font-weight:500;font-size:15px;
+  background:var(--ink);color:#fff;border:none;border-radius:8px;
+  padding:10px 18px;cursor:pointer;
+}
+button:hover{background:#233C57}
+button:focus-visible, input:focus-visible{outline:3px solid var(--p);outline-offset:2px}
+button.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+button.ghost:hover{background:rgba(22,40,59,.06)}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap}
+
+.toggles{display:flex;flex-wrap:wrap;gap:8px}
+.toggle{
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;
+  border:1.5px solid var(--line);background:#fff;color:var(--muted);
+  border-radius:999px;padding:7px 14px;cursor:pointer;
+}
+.toggle[aria-pressed=true]{color:#fff}
+.toggle.t-load[aria-pressed=true]{background:var(--ink);border-color:var(--ink)}
+
+.readouts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.readout{
+  flex:1;min-width:130px;padding:10px 14px;border-radius:8px;
+  border:1px solid var(--line);background:#FBFDFE;
+  font-family:"IBM Plex Mono",monospace;
+}
+.readout .k{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout .v{font-size:20px;font-weight:600;margin-top:2px}
+.readout.r-p{background:var(--p-soft)} .readout.r-p .v{color:var(--p)}
+.readout.r-i{background:var(--i-soft)} .readout.r-i .v{color:var(--i)}
+.readout.r-d{background:var(--d-soft)} .readout.r-d .v{color:var(--d)}
+.readout.r-sp{background:var(--sp-soft)} .readout.r-sp .v{color:var(--sp)}
+
+.hint{margin-top:12px;font-size:14.5px;color:var(--muted);max-width:64ch}
+
+/* ---------- collapsible plots ---------- */
+details.plots{
+  margin-top:14px;border:1px solid var(--line);border-radius:8px;
+  background:#FBFDFE;overflow:hidden;
+}
+details.plots summary{
+  cursor:pointer;padding:11px 14px;list-style:none;
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;
+  color:var(--muted);display:flex;align-items:center;gap:9px;user-select:none;
+}
+details.plots summary::-webkit-details-marker{display:none}
+details.plots summary::before{content:"▸";color:var(--p);transition:transform .18s}
+details[open].plots summary::before{transform:rotate(90deg)}
+@media (prefers-reduced-motion:reduce){details.plots summary::before{transition:none}}
+details.plots summary:hover{color:var(--ink)}
+details.plots .plotbody{padding:0 14px 14px}
+details.plots canvas{background:#fff}
+details.plots .cap{
+  margin-top:10px;font-size:13.5px;color:var(--muted);line-height:1.55;
+  font-family:"Public Sans",sans-serif;
+}
+a.next{
+  display:block;margin-top:56px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px 24px;color:inherit;text-decoration:none;
+  transition:border-color .15s ease, background .15s ease;
+}
+a.next:hover{border-color:var(--p);background:var(--p-soft)}
+a.next .k{
+  display:block;font-family:"IBM Plex Mono",monospace;font-size:12px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;
+}
+a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15rem}
+.footer{
+  margin-top:80px;padding-top:24px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:14.5px;font-family:"IBM Plex Mono",monospace;
+}
+@media (max-width:560px){ body{font-size:16px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <a class="home" href="index.html">← All lessons</a>
+  <svg class="hero-loop" viewBox="0 0 112 112" aria-hidden="true">
+    <circle cx="56" cy="56" r="40" fill="none" stroke="#16283B" stroke-width="4"/>
+    <line x1="38" y1="12" x2="74" y2="12" stroke="#7A4FD0" stroke-width="3" stroke-dasharray="5,4"/>
+    <circle class="pulse pc" r="5.5"><animateMotion dur="3.6s" repeatCount="indefinite" path="M96,56 a40,40 0 1,1 -80,0 a40,40 0 1,1 80,0"/></circle>
+  </svg>
+  <div class="eyebrow">Feedback · error · P · I · D</div>
+  <h1>Close the <span class="q">loop</span>.</h1>
+  <p class="sub">A thermostat, a cruise control, and a robot elevator all run the same three-beat trick: measure what's happening, compare it to what you wanted, push against the difference. That's feedback — and PID is the classic recipe for how hard to push.</p>
+  <div class="legend">
+    <span><span class="chip dashed" style="border-color:var(--sp)"></span>setpoint (the goal)</span>
+    <span><span class="chip" style="border-color:var(--p)"></span>P (the present)</span>
+    <span><span class="chip" style="border-color:var(--i)"></span>I (the past)</span>
+    <span><span class="chip" style="border-color:var(--d)"></span>D (the future)</span>
+    <span><span class="chip" style="border-color:var(--ink)"></span>the mechanism</span>
+  </div>
+</header>
+
+<!-- ============ 1. the loop, and the naive controller ============ -->
+<section>
+  <div class="step">Part 1 / One loop, one number</div>
+  <h2>Everything runs on the error</h2>
+  <p>Here is the machine this whole page lives inside. The <span class="sp-t">setpoint</span> is what you want. The sensor reports what you have. Subtract them and you get the <strong>error</strong> — a single number saying how wrong you are, and in which direction. The controller's entire job is to turn that number into motor voltage:</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 760 210" role="img" aria-label="Closed-loop block diagram: setpoint and measured height meet at a summing junction producing error, which feeds a controller, then the plant; a sensor routes the height back to the summing junction">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#16283B"/>
+        </marker>
+      </defs>
+      <text x="10" y="58" class="bd-sig spc">setpoint r</text>
+      <line x1="10" y1="70" x2="86" y2="70" class="bd-wire spc" marker-end="url(#arr)"/>
+      <circle cx="106" cy="70" r="16" class="bd-sum"/>
+      <text x="97" y="61" class="bd-sig">+</text>
+      <text x="99" y="99" class="bd-sig">−</text>
+      <text x="132" y="58" class="bd-sig pc">error e</text>
+      <line x1="122" y1="70" x2="208" y2="70" class="bd-wire pc" marker-end="url(#arr)"/>
+      <rect x="212" y="42" width="150" height="56" rx="8" class="bd-block pc"/>
+      <text x="287" y="70" text-anchor="middle" class="bd-label">Controller</text>
+      <text x="287" y="88" text-anchor="middle" class="bd-sig pc">V = ??? — this page</text>
+      <text x="378" y="58" class="bd-sig">voltage V</text>
+      <line x1="362" y1="70" x2="452" y2="70" class="bd-wire" marker-end="url(#arr)"/>
+      <rect x="456" y="42" width="170" height="56" rx="8" class="bd-block"/>
+      <text x="541" y="70" text-anchor="middle" class="bd-label">Plant</text>
+      <text x="541" y="88" text-anchor="middle" class="bd-sig">(elevator + motor)</text>
+      <text x="648" y="58" class="bd-sig">height y</text>
+      <line x1="626" y1="70" x2="742" y2="70" class="bd-wire" marker-end="url(#arr)"/>
+      <circle cx="672" cy="70" r="3.5" fill="#16283B"/>
+      <line x1="672" y1="70" x2="672" y2="156" class="bd-wire"/>
+      <rect x="380" y="128" width="130" height="52" rx="8" class="bd-block"/>
+      <text x="445" y="150" text-anchor="middle" class="bd-label">Sensor</text>
+      <text x="445" y="168" text-anchor="middle" class="bd-sig">(encoder)</text>
+      <line x1="672" y1="156" x2="510" y2="156" class="bd-wire" marker-end="url(#arr)"/>
+      <line x1="380" y1="156" x2="106" y2="156" class="bd-wire"/>
+      <line x1="106" y1="156" x2="106" y2="90" class="bd-wire" marker-end="url(#arr)"/>
+      <text x="200" y="146" class="bd-sig">measured y</text>
+      <circle class="pulse spc" r="3.5"><animateMotion dur="4s" repeatCount="indefinite" path="M10,70 L82,70"/></circle>
+      <circle class="pulse pc" r="3.5"><animateMotion dur="4s" begin="0.9s" repeatCount="indefinite" path="M122,70 L204,70"/></circle>
+      <circle class="pulse" r="3.5"><animateMotion dur="4s" begin="1.8s" repeatCount="indefinite" path="M362,70 L448,70"/></circle>
+      <circle class="pulse" r="3.5"><animateMotion dur="4s" begin="2.5s" repeatCount="indefinite" path="M626,70 L672,70"/></circle>
+      <circle class="pulse" r="3.5"><animateMotion dur="4s" begin="3s" repeatCount="indefinite" path="M672,70 L672,156 L514,156"/></circle>
+      <circle class="pulse" r="3.5"><animateMotion dur="4s" begin="3.5s" repeatCount="indefinite" path="M380,156 L106,156 L106,94"/></circle>
+    </svg>
+    <div class="cap"><strong>The feedback loop.</strong> If this picture reads like hieroglyphics, take ten minutes with the primer <a href="boxes-arrows-circles-block-diagrams.html"><em>Boxes, Arrows, Circles</em></a> first — this page assumes you can trace it. The one box we left blank is the controller. Filling it in well is the art.</div>
+  </div>
+
+  <p>The simplest possible filling is a reflex: <strong>bang-bang control</strong> — full power when you're below the target, nothing when you're above. No subtlety, just a light switch. Watch it fight a proportional controller (coming up next) for the job of parking an elevator carriage on a target line:</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 00 — The parking contest</span><span class="tag">bang-bang vs proportional</span></div>
+    <div class="widget-body">
+      <canvas id="c0" height="280"></canvas>
+      <details class="plots" id="w0plots">
+        <summary>Plots — height &amp; voltage vs time</summary>
+        <div class="plotbody">
+          <canvas id="c0p1" height="180"></canvas>
+          <canvas id="c0p2" height="170" style="margin-top:10px"></canvas>
+          <p class="cap">Top: bang-bang crosses the line and never stops crossing it — a permanent wobble. The proportional carriage glides in once and stays. Bottom: the voltages tell you why — bang-bang is a square wave slamming between 12 V and 0 V, while the proportional voltage tapers smoothly as the gap closes.</p>
+        </div>
+      </details>
+      <div class="controls">
+        <div class="btnrow">
+          <button id="w0replay">Replay</button>
+        </div>
+      </div>
+      <p class="hint">Bang-bang arrives fast, all right — so fast it slams clear into the top of the shaft, then bounces across the line and never stops crossing it, because "full power or nothing" has no way to say <em>almost there</em>. The proportional carriage eases off as it approaches and parks smoothly. But look closely at where it parks: slightly <em>below</em> the line. Remember that gap — it's the cliffhanger for Part 2.</p>
+    </div>
+  </div>
+
+  <div class="callout violet">
+    <strong>Vocabulary check</strong> (all from <a href="boxes-arrows-circles-block-diagrams.html">the block-diagrams primer</a>): the mechanism being controlled is the <strong>plant</strong> — here, a motor-driven elevator with real gravity and inertia. The goal is the <strong>setpoint r</strong>. The controller's output is motor voltage <strong>V</strong>, and <strong>error e = r − y</strong> where y is the measured height.
+  </div>
+</section>
+
+<!-- ============ 2. P ============ -->
+<section>
+  <div class="step">Part 2 / P — the present</div>
+  <h2>Push proportional to the gap</h2>
+  <p>The fix for bang-bang's chatter is embarrassingly simple: <em>push harder when you're far away, gently when you're close.</em> Multiply the error by a constant and call the result voltage. That constant is the <strong>gain</strong>, written <span class="p-t">kP</span>, and the whole controller is one line:</p>
+
+  <div class="eq">
+    <div class="line"><b>P</b> V = kP · e</div>
+    <span class="who"><code>V</code> — motor voltage · <code>e</code> — the error, setpoint − measured height (meters here) · <code>kP</code> — the proportional gain, in volts per meter of error: how aggressively distance is converted into push.<span class="note">kP is a personality dial. Small kP: patient, gentle, slow. Big kP: eager, fast — and, past a point, so eager it flies through the target and has to come back. You are about to meet all three personalities.</span></span>
+  </div>
+
+  <p>Think of it as tying the carriage to the target with a <strong>rubber band</strong>: the farther it strays, the harder it's pulled back. Tune the band's stiffness yourself:</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 01 — The P playground</span><span class="tag">one gain, three personalities</span></div>
+    <div class="widget-body">
+      <canvas id="c1" height="280"></canvas>
+      <details class="plots" id="w1plots">
+        <summary>Plots — height &amp; voltage vs time</summary>
+        <div class="plotbody">
+          <canvas id="c1p1" height="180"></canvas>
+          <canvas id="c1p2" height="170" style="margin-top:10px"></canvas>
+          <p class="cap">Height settles into a flat line <em>below</em> the dashed setpoint — that vertical gap is the steady-state error, and it shrinks (but never dies) as kP grows. The voltage plot shows the elevator's dirty secret: holding still costs a constant 1.5 V against gravity, and with V = kP·e the only way to produce it is to keep some error alive.</p>
+        </div>
+      </details>
+      <div class="controls">
+        <div class="control">
+          <label><span>Setpoint (m)</span><output id="w1spOut">1.00</output></label>
+          <input type="range" id="w1sp" min="40" max="140" value="100" step="5" aria-label="Setpoint height in meters">
+        </div>
+        <div class="control">
+          <label><span>kP (V per m of error)</span><output id="w1kpOut">8</output></label>
+          <input type="range" id="w1kp" min="2" max="40" value="8" aria-label="Proportional gain">
+        </div>
+        <div class="btnrow">
+          <button id="w1reset" class="ghost">Reset</button>
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout r-p"><div class="k">Error</div><div class="v" id="w1rerr">—</div></div>
+        <div class="readout"><div class="k">Voltage</div><div class="v" id="w1rv">—</div></div>
+        <div class="readout"><div class="k">Overshoot</div><div class="v" id="w1rov">—</div></div>
+      </div>
+      <p class="hint">Experiments: <strong>(1)</strong> kP = 4 — sluggish crawl, huge droop below the line. <strong>(2)</strong> kP = 10 — quicker, and the droop parks at almost exactly 15 cm. That's no accident: this elevator needs 1.5 V to hover, and 1.5 V ÷ 10 V/m = 0.15 m. Check it against the error readout. <strong>(3)</strong> kP = 35 — it flies through the target, rings back and forth, and <em>still</em> settles a few cm low. Speed and droop trade off; neither ever reaches zero.</p>
+    </div>
+  </div>
+
+  <p>So P alone has a flaw, and it's structural, not a tuning mistake. Gravity charges this elevator a standing bill of 1.5 V just to hold still. But V = kP·e can only produce voltage <em>out of error</em> — so to pay a permanent bill, it must hold a permanent error. The rubber band says it plainly: <strong>a spring holding up a weight must stay stretched.</strong></p>
+
+  <div class="eq">
+    <div class="line"><b>droop</b> e<sub>ss</sub> = V<sub>hold</sub> / kP</div>
+    <span class="who"><code>e<sub>ss</sub></code> — the <strong>steady-state error</strong>: the error left over once everything stops moving · <code>V<sub>hold</sub></code> — the constant voltage the load demands (gravity's 1.5 V here) · <code>kP</code> — the proportional gain.<span class="note">Bigger kP shrinks the droop but never erases it — and cranking kP for that reason buys you the ringing from experiment 3. Erasing it takes a new idea, and the new idea is memory.</span></span>
+  </div>
+</section>
+
+<!-- ============ 3. I ============ -->
+<section>
+  <div class="step">Part 3 / I — the past</div>
+  <h2>The term that holds a grudge</h2>
+  <p>P only sees this instant. The <span class="i-t">integral term</span> reads the history: it adds up the error over time — every second spent below the line grows the total — and pushes in proportion to that running sum. Persistently a little low? The sum quietly climbs, and the push climbs with it, until the error is <em>actually zero</em>. It is patience that turns into pressure:</p>
+
+  <div class="eq">
+    <div class="line"><b>I</b> V<sub>I</sub> = kI · ∫ e dt</div>
+    <span class="who"><code>V<sub>I</sub></code> — the integral term's share of the voltage · <code>∫ e dt</code> — the <strong>integral of error</strong>: the running total of error × time, in meter-seconds; think of it as the area under the error curve · <code>kI</code> — the integral gain, volts per meter-second of accumulated error.<span class="note">The key property: this sum only stops changing when e = 0. Any leftover droop keeps feeding it, so the push keeps growing until the droop is gone. It cannot rest until you're exactly on target.</span></span>
+  </div>
+
+  <p>Watch it erase the droop. The <span class="i-t">memory tank</span> next to the elevator shows the integral filling up — and notice what it holds once everything settles:</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 02 — The memory tank</span><span class="tag">P + I</span></div>
+    <div class="widget-body">
+      <canvas id="c2" height="280"></canvas>
+      <details class="plots" id="w2plots">
+        <summary>Plots — height &amp; voltage split vs time</summary>
+        <div class="plotbody">
+          <canvas id="c2p1" height="180"></canvas>
+          <canvas id="c2p2" height="170" style="margin-top:10px"></canvas>
+          <p class="cap">Bottom plot is the handoff, drawn live: as the carriage closes the gap, <span style="color:var(--p);font-weight:600">V_P</span> fades toward zero while <span style="color:var(--i);font-weight:600">V_I</span> ramps up and levels off at exactly 1.5 V — the gravity bill, now paid entirely from memory instead of from error.</p>
+        </div>
+      </details>
+      <div class="controls">
+        <div class="control">
+          <label><span>kP (V per m)</span><output id="w2kpOut">10</output></label>
+          <input type="range" id="w2kp" min="4" max="40" value="10" aria-label="Proportional gain">
+        </div>
+        <div class="control">
+          <label><span>kI (V per m·s)</span><output id="w2kiOut">0.0</output></label>
+          <input type="range" id="w2ki" min="0" max="150" value="0" aria-label="Integral gain, slider value is tenths">
+        </div>
+        <div class="btnrow">
+          <button id="w2reset" class="ghost">Reset</button>
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout r-p"><div class="k">V_P = kP·e</div><div class="v" id="w2rvp">—</div></div>
+        <div class="readout r-i"><div class="k">V_I = kI·∫e</div><div class="v" id="w2rvi">—</div></div>
+        <div class="readout"><div class="k">Error</div><div class="v" id="w2rerr">—</div></div>
+      </div>
+      <p class="hint">Experiments: <strong>(1)</strong> kI = 0 — the familiar droop, parked forever. <strong>(2)</strong> kI = 3 — watch the tank fill while the droop drains away to zero. Once settled, V_P ≈ 0 and V_I ≈ 1.5 V: the integral has memorized the gravity bill. <strong>(3)</strong> kI = 12 — the memory now builds faster than the elevator can respond, so it overfills, overshoots, and sloshes back and forth before calming down. Too much memory is a hothead.</p>
+    </div>
+  </div>
+
+  <div class="callout green">
+    <strong>Why "integral"?</strong> In calculus, the integral is the area under a curve. This term literally accumulates the area under the error curve — a small error held for a long time and a big error held briefly weigh the same. That's also its danger: during a long climb the tank fills with error that's already being handled, then has to slosh back out. Gentle kI values are the norm on real robots.
+  </div>
+</section>
+
+<!-- ============ 4. D ============ -->
+<section>
+  <div class="step">Part 4 / D — the future</div>
+  <h2>The term that hits the brakes</h2>
+  <p>Now for the opposite problem. Crank kP and the carriage doesn't just approach the target — it <em>arrives at speed</em>, blows through, and rings. P can't help: at the moment of crossing, the error is zero, so its push is zero, even though you're moving fast in the wrong direction. What's missing is a term that looks at <strong>how fast the error is changing</strong> — one that sees the line rushing toward you and starts braking early:</p>
+
+  <div class="eq">
+    <div class="line"><b>D</b> V<sub>D</sub> = kD · de/dt</div>
+    <span class="who"><code>V<sub>D</sub></code> — the derivative term's share of the voltage · <code>de/dt</code> — the <strong>derivative of error</strong>: its rate of change, in meters per second; negative while you're closing in on the target · <code>kD</code> — the derivative gain, volts per (meter per second).<span class="note">Closing fast on the setpoint makes de/dt negative, so V_D pushes <em>against the motion</em> — a braking force that grows with approach speed. It behaves exactly like a shock absorber, which is why engineers call its effect <strong>damping</strong>.</span></span>
+  </div>
+
+  <p>It's how you catch an egg: your hand gives way <em>based on the egg's speed</em>, not its position. Here's a deliberately over-eager P controller, plus the damper that civilizes it:</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 03 — The shock absorber</span><span class="tag">P + D</span></div>
+    <div class="widget-body">
+      <canvas id="c3" height="280"></canvas>
+      <details class="plots" id="w3plots">
+        <summary>Plots — height &amp; voltage split vs time</summary>
+        <div class="plotbody">
+          <canvas id="c3p1" height="180"></canvas>
+          <canvas id="c3p2" height="170" style="margin-top:10px"></canvas>
+          <p class="cap"><span style="color:var(--d);font-weight:600">V_D</span> is the mirror image of the motion: zero whenever the carriage coasts, spiking against it whenever it moves fast. Watch it fight <span style="color:var(--p);font-weight:600">V_P</span> during the approach — P says "go, you're not there", D says "slow down, you're arriving too hot".</p>
+        </div>
+      </details>
+      <div class="controls">
+        <div class="control">
+          <label><span>kP (V per m)</span><output id="w3kpOut">30</output></label>
+          <input type="range" id="w3kp" min="2" max="40" value="30" aria-label="Proportional gain">
+        </div>
+        <div class="control">
+          <label><span>kD (V per m/s)</span><output id="w3kdOut">0.0</output></label>
+          <input type="range" id="w3kd" min="0" max="60" value="0" aria-label="Derivative gain, slider value is tenths">
+        </div>
+        <div class="btnrow">
+          <button id="w3step">Step the setpoint</button>
+          <button id="w3reset" class="ghost">Reset</button>
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout"><div class="k">Overshoot</div><div class="v" id="w3rov">—</div></div>
+        <div class="readout r-d"><div class="k">V_D now</div><div class="v" id="w3rvd">—</div></div>
+        <div class="readout"><div class="k">Settled in</div><div class="v" id="w3rsettle">—</div></div>
+      </div>
+      <p class="hint">Experiments (press <em>Step the setpoint</em> after each change): <strong>(1)</strong> kP = 30, kD = 0 — big overshoot, several rings. <strong>(2)</strong> kD = 1.5 — the ringing dies; one clean swoop into the target. <strong>(3)</strong> kD = 6 — now it's over-damped: no overshoot ever, but the last few centimeters take forever, like driving with the parking brake on. Damping is a dial, and both ends are wrong.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. PID assembled ============ -->
+<section>
+  <div class="step">Part 5 / P + I + D</div>
+  <h2>Three views of one error</h2>
+  <p>Stack the three terms and you have the full controller. It's worth saying out loud how neat this is: each term reads the same error signal on a different axis of time. <span class="p-t">P reads the present</span> — how wrong am I now? <span class="i-t">I reads the past</span> — how long have I been wrong? <span class="d-t">D reads the future</span> — which way is the error heading? Their votes simply add:</p>
+
+  <div class="eq">
+    <div class="line"><b>PID</b> V = kP · e + kI · ∫ e dt + kD · de/dt</div>
+    <span class="who"><code>V</code> — total motor voltage · <code>e</code> — the error, r − y · <code>kP</code>, <code>kI</code>, <code>kD</code> — the three gains: the entire tuning of the controller lives in these three numbers.<span class="note">Any gain set to zero simply switches that term off — a "PD controller" or "PI controller" is just PID with a zero in it. Most FRC mechanisms run P or PD; I joins when a stubborn load refuses to let the error die.</span></span>
+  </div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 760 330" role="img" aria-label="PID block diagram: the error splits into proportional, integral, and derivative blocks whose outputs sum into the plant voltage; the plant output feeds back to the error junction">
+      <text x="6" y="58" class="bd-sig spc">setpoint r</text>
+      <line x1="6" y1="70" x2="62" y2="70" class="bd-wire spc" marker-end="url(#arr)"/>
+      <circle cx="82" cy="70" r="16" class="bd-sum"/>
+      <text x="73" y="61" class="bd-sig">+</text>
+      <text x="75" y="99" class="bd-sig">−</text>
+      <text x="108" y="58" class="bd-sig pc">error e</text>
+      <line x1="98" y1="70" x2="170" y2="70" class="bd-wire pc"/>
+      <circle cx="170" cy="70" r="3.5" fill="#E07B1F"/>
+      <line x1="170" y1="70" x2="236" y2="70" class="bd-wire pc" marker-end="url(#arr)"/>
+      <line x1="170" y1="70" x2="170" y2="165" class="bd-wire pc"/>
+      <line x1="170" y1="165" x2="236" y2="165" class="bd-wire pc" marker-end="url(#arr)"/>
+      <line x1="170" y1="165" x2="170" y2="260" class="bd-wire pc"/>
+      <line x1="170" y1="260" x2="236" y2="260" class="bd-wire pc" marker-end="url(#arr)"/>
+      <rect x="240" y="42" width="180" height="56" rx="8" class="bd-block pc"/>
+      <text x="330" y="66" text-anchor="middle" class="bd-label">Proportional</text>
+      <text x="330" y="84" text-anchor="middle" class="bd-sig pc">V_P = kP · e</text>
+      <rect x="240" y="137" width="180" height="56" rx="8" class="bd-block ic"/>
+      <text x="330" y="161" text-anchor="middle" class="bd-label">Integral</text>
+      <text x="330" y="179" text-anchor="middle" class="bd-sig ic">V_I = kI · ∫e dt</text>
+      <rect x="240" y="232" width="180" height="56" rx="8" class="bd-block dc"/>
+      <text x="330" y="256" text-anchor="middle" class="bd-label">Derivative</text>
+      <text x="330" y="274" text-anchor="middle" class="bd-sig dc">V_D = kD · de/dt</text>
+      <line x1="420" y1="70" x2="470" y2="70" class="bd-wire pc"/>
+      <line x1="470" y1="70" x2="470" y2="146" class="bd-wire pc" marker-end="url(#arr)"/>
+      <line x1="420" y1="165" x2="451" y2="165" class="bd-wire ic" marker-end="url(#arr)"/>
+      <line x1="420" y1="260" x2="470" y2="260" class="bd-wire dc"/>
+      <line x1="470" y1="260" x2="470" y2="184" class="bd-wire dc" marker-end="url(#arr)"/>
+      <circle cx="470" cy="165" r="16" class="bd-sum"/>
+      <text x="461" y="150" class="bd-sig">+</text>
+      <text x="448" y="172" class="bd-sig">+</text>
+      <text x="461" y="188" class="bd-sig">+</text>
+      <text x="497" y="153" class="bd-sig">voltage V</text>
+      <line x1="486" y1="165" x2="540" y2="165" class="bd-wire" marker-end="url(#arr)"/>
+      <rect x="544" y="137" width="150" height="56" rx="8" class="bd-block"/>
+      <text x="619" y="161" text-anchor="middle" class="bd-label">Plant</text>
+      <text x="619" y="179" text-anchor="middle" class="bd-sig">(elevator)</text>
+      <line x1="694" y1="165" x2="748" y2="165" class="bd-wire" marker-end="url(#arr)"/>
+      <text x="700" y="153" class="bd-sig">height y</text>
+      <circle cx="716" cy="165" r="3.5" fill="#16283B"/>
+      <line x1="716" y1="165" x2="716" y2="310" class="bd-wire"/>
+      <line x1="716" y1="310" x2="82" y2="310" class="bd-wire"/>
+      <line x1="82" y1="310" x2="82" y2="90" class="bd-wire" marker-end="url(#arr)"/>
+      <text x="360" y="300" class="bd-sig">measured y (sensor)</text>
+      <circle class="pulse spc" r="3.5"><animateMotion dur="5s" repeatCount="indefinite" path="M6,70 L58,70"/></circle>
+      <circle class="pulse pc" r="3.5"><animateMotion dur="5s" begin="0.8s" repeatCount="indefinite" path="M98,70 L170,70 L232,70"/></circle>
+      <circle class="pulse ic" r="3.5"><animateMotion dur="5s" begin="0.8s" repeatCount="indefinite" path="M170,70 L170,165 L232,165"/></circle>
+      <circle class="pulse dc" r="3.5"><animateMotion dur="5s" begin="0.8s" repeatCount="indefinite" path="M170,70 L170,260 L232,260"/></circle>
+      <circle class="pulse pc" r="3.5"><animateMotion dur="5s" begin="2s" repeatCount="indefinite" path="M420,70 L470,70 L470,142"/></circle>
+      <circle class="pulse ic" r="3.5"><animateMotion dur="5s" begin="2s" repeatCount="indefinite" path="M420,165 L447,165"/></circle>
+      <circle class="pulse dc" r="3.5"><animateMotion dur="5s" begin="2s" repeatCount="indefinite" path="M420,260 L470,260 L470,188"/></circle>
+      <circle class="pulse" r="3.5"><animateMotion dur="5s" begin="2.9s" repeatCount="indefinite" path="M486,165 L536,165"/></circle>
+      <circle class="pulse" r="3.5"><animateMotion dur="5s" begin="3.6s" repeatCount="indefinite" path="M694,165 L716,165 L716,310 L86,310 L82,94"/></circle>
+    </svg>
+    <div class="cap"><strong>PID in boxes and arrows.</strong> One error, three parallel readings of it, one summed voltage. Every industrial controller, drone autopilot, and FRC mechanism you'll meet is some subset of this picture.</div>
+  </div>
+
+  <p>Now earn it. The tuning bay below is the exercise this whole page was building to: a full PID controller, a spec to hit, and a disturbance to survive. Tuners in the real world usually work in this order — <strong>P for muscle, D for calm, I for the last centimeter</strong>:</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 04 — The tuning bay</span><span class="tag">meet the spec</span></div>
+    <div class="widget-body">
+      <p style="margin-top:0;font-size:15px;color:var(--muted)">Spec to hit, with the heavy load on: overshoot under 10%, settled (within ±2 cm and staying there) in under 2.0 s, and steady error under 1 cm. Metrics grade the most recent step — press <em>Step the setpoint</em> to be judged.</p>
+      <div class="toggles" style="margin-bottom:14px">
+        <button class="toggle t-load" id="w4load" aria-pressed="false">heavy load: off</button>
+      </div>
+      <canvas id="c4" height="280"></canvas>
+      <details class="plots" id="w4plots">
+        <summary>Plots — height &amp; the three terms vs time</summary>
+        <div class="plotbody">
+          <canvas id="c4p1" height="180"></canvas>
+          <canvas id="c4p2" height="180" style="margin-top:10px"></canvas>
+          <p class="cap">The bottom plot is the controller's inner monologue: <span style="color:var(--p);font-weight:600">V_P</span> surges on each step and fades, <span style="color:var(--d);font-weight:600">V_D</span> spikes against motion and returns to zero, and <span style="color:var(--i);font-weight:600">V_I</span> drifts slowly to whatever constant the load demands and stays there. A well-tuned run has exactly that shape.</p>
+        </div>
+      </details>
+      <div class="controls">
+        <div class="control">
+          <label><span>kP (V per m)</span><output id="w4kpOut">8</output></label>
+          <input type="range" id="w4kp" min="2" max="40" value="8" aria-label="Proportional gain">
+        </div>
+        <div class="control">
+          <label><span>kI (V per m·s)</span><output id="w4kiOut">0.0</output></label>
+          <input type="range" id="w4ki" min="0" max="150" value="0" aria-label="Integral gain, slider value is tenths">
+        </div>
+        <div class="control">
+          <label><span>kD (V per m/s)</span><output id="w4kdOut">0.0</output></label>
+          <input type="range" id="w4kd" min="0" max="60" value="0" aria-label="Derivative gain, slider value is tenths">
+        </div>
+        <div class="btnrow">
+          <button id="w4step">Step the setpoint</button>
+          <button id="w4reset" class="ghost">Reset</button>
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout"><div class="k">Overshoot (&lt; 10%)</div><div class="v" id="w4rov">—</div></div>
+        <div class="readout"><div class="k">Settled (&lt; 2.0 s)</div><div class="v" id="w4rsettle">—</div></div>
+        <div class="readout"><div class="k">Steady err (&lt; 1 cm)</div><div class="v" id="w4rerr">—</div></div>
+      </div>
+      <p class="hint">The recipe, as exercises: <strong>(1)</strong> kI = kD = 0. Raise kP until the carriage moves with authority and overshoots a little (try ~25). <strong>(2)</strong> Add kD until the ringing just disappears (~1.5–2). <strong>(3)</strong> The droop is still there — and toggling the heavy load on makes it worse — so add kI (~4–5) to erase it. Step again and check for three green marks. <strong>(4)</strong> For fun, break it: kP = 2 with kI = 15 never calms down — memory with no muscle is a disaster. <strong>(5)</strong> Found gains that pass? Flip the load mid-hold and watch V_I quietly re-learn the new bill.</p>
+    </div>
+  </div>
+
+  <p>In WPILib this controller is one object, and its gains have exactly the names you've been tuning:</p>
+
+  <div class="eq">
+    <div class="line">pid = new PIDController(kP, kI, kD);</div>
+    <div class="line">V = pid.calculate(measuredHeight, setpoint);</div>
+    <span class="who"><code>PIDController</code> — WPILib's implementation of everything on this page, run once per robot loop (every 20 ms) · <code>calculate(measurement, setpoint)</code> — computes the error internally and returns the summed P + I + D output · <code>kP</code>, <code>kI</code>, <code>kD</code> — the same three gains, in volts per unit of your sensor.<span class="note">Concepts and the math live in <a href="https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/introduction-to-pid.html">Introduction to PID</a>; the class itself in <a href="https://docs.wpilib.org/en/stable/docs/software/advanced-controls/controllers/pidcontroller.html">PID Control in WPILib</a>.</span></span>
+  </div>
+</section>
+
+<!-- ============ 6. recap ============ -->
+<section>
+  <div class="step">Part 6 / Recap</div>
+  <h2>Five ideas to walk away with</h2>
+  <p><strong>1. Feedback is measure, compare, correct.</strong> Everything the controller does is powered by one number — the error — recomputed every loop.</p>
+  <p><strong>2. P is a rubber band.</strong> Push proportional to the gap: simple and strong. But a spring holding a load must stay stretched — a constant demand like gravity leaves a permanent steady-state error.</p>
+  <p><strong>3. I is memory.</strong> It accumulates unpaid error and ramps its push until the error is truly zero — then keeps holding the bill from memory. Overdo it and the memory sloshes.</p>
+  <p><strong>4. D is a shock absorber.</strong> It reads the error's speed and brakes the approach, killing overshoot. Overdo it and everything turns to molasses.</p>
+  <p><strong>5. Tuning has an order: P, then D, then I.</strong> Muscle first, then calm, then the last centimeter. Three numbers, tuned in the tuning bay the same way you'd tune them on a real robot.</p>
+  <p>One thing should still bother you: even perfectly tuned, this controller <em>always reacts</em>. It cannot lift a finger until the error already exists. <a href="push-first-feedforward-control.html">The next lesson</a> is about escaping exactly that — predicting the push instead of waiting to discover it. (And PID itself has real-world sharp edges — noisy sensors, motors that max out — which get their own lesson later.)</p>
+  <div class="eq glossary">
+    <div class="line"><code>feedback</code> — control powered by measuring the error</div>
+    <div class="line"><code>error e</code> — setpoint − measurement, recomputed every loop</div>
+    <div class="line"><code>bang-bang</code> — full power or nothing; arrives fast, chatters forever</div>
+    <div class="line"><code>kP</code> — push per unit of error (the present)</div>
+    <div class="line"><code>kI</code> — push per unit of accumulated error (the past)</div>
+    <div class="line"><code>kD</code> — push against the error's rate of change (the future)</div>
+    <div class="line"><code>steady-state error</code> — the droop P alone can never erase</div>
+    <div class="line"><code>overshoot</code> — how far past the target you fly, as % of the step</div>
+    <div class="line"><code>settling time</code> — time until you're inside the target band for good</div>
+    <span class="who">Pocket glossary — the whole page, one line each. Further reading: <a href="https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/introduction-to-pid.html">Introduction to PID</a> and <a href="https://docs.wpilib.org/en/stable/docs/software/advanced-controls/controllers/pidcontroller.html">PID Control in WPILib</a>.</span>
+  </div>
+</section>
+
+<a class="next" href="push-first-feedforward-control.html">
+  <span class="k">Next lesson</span>
+  <span class="t">Push First, Correct Later — Feedforward Control →</span>
+</a>
+
+<div class="footer">Built as an interactive lesson · every elevator on this page is a real simulated mechanism — gravity, inertia, motor limits — and every readout is the controller's actual internal state, not an animation.</div>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+/* ---------- helpers ---------- */
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const COL = {
+  ink: css("--ink"), p: css("--p"), i: css("--i"), d: css("--d"),
+  sp: css("--sp"), muted: css("--muted"), grid: "#E4EDF2"
+};
+function setupCanvas(id, cssHeight){
+  const c = document.getElementById(id);
+  const ctx = c.getContext("2d");
+  function fit(){
+    const dpr = window.devicePixelRatio || 1;
+    const w = c.clientWidth || c.parentElement.clientWidth;
+    c.width = Math.round(w * dpr);
+    c.height = Math.round(cssHeight * dpr);
+    c.style.height = cssHeight + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (c._redraw) c._redraw();
+  }
+  new ResizeObserver(fit).observe(c);
+  fit();
+  return { c, ctx, W: () => c.clientWidth, H: () => cssHeight };
+}
+function grid(ctx, W, H){
+  ctx.strokeStyle = COL.grid; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for(let x = 28; x < W; x += 28){ ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+  for(let y = 28; y < H; y += 28){ ctx.moveTo(0, y); ctx.lineTo(W, y); }
+  ctx.stroke();
+}
+
+/* Generic time/series plot used by the collapsible plot panels */
+function linePlot(ctx, W, H, cfg){
+  const padL = 48, padR = 12, padT = 16, padB = 30;
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = COL.ink; ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, H - padB); ctx.lineTo(W - padR, H - padB);
+  ctx.stroke();
+  const X = v => padL + (v - cfg.x0) / (cfg.x1 - cfg.x0) * (W - padL - padR);
+  const Y = v => H - padB - (v - cfg.y0) / (cfg.y1 - cfg.y0) * (H - padT - padB);
+  const clampY = y => Math.max(padT, Math.min(H - padB, y));
+  const fmt = v => Math.abs(v) >= 10 ? v.toFixed(0) : v.toFixed(1);
+  ctx.font = "10.5px 'IBM Plex Mono', monospace"; ctx.fillStyle = COL.muted;
+  ctx.textAlign = "center";
+  ctx.fillText(cfg.xLabel, (padL + W - padR)/2, H - 8);
+  ctx.save(); ctx.translate(12, (padT + H - padB)/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText(cfg.yLabel, 0, 0); ctx.restore();
+  ctx.textAlign = "right";
+  [cfg.y0, (cfg.y0 + cfg.y1)/2, cfg.y1].forEach(v => ctx.fillText(fmt(v), padL - 6, Y(v) + 3));
+  (cfg.hlines || []).forEach(hl => {
+    ctx.strokeStyle = hl.col; ctx.setLineDash([5,4]); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(padL, Y(hl.y)); ctx.lineTo(W - padR, Y(hl.y)); ctx.stroke();
+    ctx.setLineDash([]);
+    if(hl.label){ ctx.fillStyle = hl.col; ctx.textAlign = "left"; ctx.fillText(hl.label, padL + 4, Y(hl.y) - 4); }
+  });
+  cfg.series.forEach(s => {
+    ctx.strokeStyle = s.col; ctx.lineWidth = 2; ctx.setLineDash(s.dash || []);
+    ctx.beginPath();
+    let started = false;
+    s.pts.forEach(p => {
+      if(p.x < cfg.x0 || p.x > cfg.x1) return;
+      const x = X(p.x), y = clampY(Y(p.y));
+      if(!started){ ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+    });
+    ctx.stroke(); ctx.setLineDash([]);
+  });
+  let lx = padL + 10;
+  ctx.font = "600 10.5px 'IBM Plex Mono', monospace"; ctx.textAlign = "left";
+  cfg.series.forEach(s => {
+    if(!s.name) return;
+    ctx.fillStyle = s.col;
+    ctx.fillText("— " + s.name, lx, padT + 10);
+    lx += ctx.measureText("— " + s.name).width + 18;
+  });
+}
+
+/* The one true elevator: gravity, back-EMF, voltage limits.
+   Hold voltage = G/A = 1.5 V, travel 0–1.5 m. */
+function makeElevator(){
+  return {
+    y: 0, v: 0, G: 6, A: 4, kE: 1.4,
+    step(V, dt){
+      V = Math.max(-12, Math.min(12, V));
+      const a = this.A * (V - this.kE * this.v) - this.G;
+      this.v += a * dt;
+      this.y += this.v * dt;
+      if(this.y < 0){ this.y = 0; this.v = Math.max(0, this.v); }
+      if(this.y > 1.5){ this.y = 1.5; this.v = Math.min(0, this.v); }
+      return this.y;
+    }
+  };
+}
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function onVisible(el, cb){
+  if(reduceMotion) return;
+  const io = new IntersectionObserver((es, o) => {
+    es.forEach(en => { if(en.isIntersecting){ cb(); o.disconnect(); } });
+  }, { threshold: 0.35 });
+  io.observe(el);
+}
+
+/* One elevator scene: rails, dashed setpoint line, carriage, error bracket, voltage bar */
+function elevScene(ctx, x0, wd, H, s){
+  const top = 36, bot = H - 60;
+  const cx = x0 + wd * 0.42;
+  const railL = cx - 26, railR = cx + 26;
+  const yPix = m => bot - (m / 1.5) * (bot - top);
+  ctx.save();
+  if(s.name){
+    ctx.font = "600 12px 'IBM Plex Mono', monospace"; ctx.fillStyle = COL.muted; ctx.textAlign = "left";
+    ctx.fillText(s.name, x0 + 14, 22);
+  }
+  if(s.ticks !== false){
+    ctx.font = "10.5px 'IBM Plex Mono', monospace"; ctx.fillStyle = COL.muted; ctx.textAlign = "right";
+    ctx.strokeStyle = COL.grid; ctx.lineWidth = 1;
+    [0, 0.5, 1.0, 1.5].forEach(m => {
+      const y = yPix(m);
+      ctx.beginPath(); ctx.moveTo(railL - 22, y); ctx.lineTo(railL - 8, y); ctx.stroke();
+      ctx.fillText(m.toFixed(1), railL - 26, y + 3.5);
+    });
+  }
+  ctx.strokeStyle = COL.ink; ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(railL, top); ctx.lineTo(railL, bot);
+  ctx.moveTo(railR, top); ctx.lineTo(railR, bot);
+  ctx.stroke();
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(railL - 22, bot); ctx.lineTo(railR + 22, bot); ctx.stroke();
+  const spY = yPix(s.sp);
+  ctx.strokeStyle = COL.sp; ctx.setLineDash([6,5]); ctx.lineWidth = 1.8;
+  ctx.beginPath(); ctx.moveTo(x0 + 12, spY); ctx.lineTo(x0 + wd - 12, spY); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = COL.sp; ctx.font = "11px 'IBM Plex Mono', monospace"; ctx.textAlign = "left";
+  ctx.fillText("setpoint", x0 + 14, spY - 6);
+  const cy = yPix(s.y);
+  ctx.fillStyle = s.col;
+  ctx.beginPath(); ctx.roundRect(railL - 9, cy - 12, (railR - railL) + 18, 24, 6); ctx.fill();
+  ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(railL - 9, cy - 12, (railR - railL) + 18, 24, 6); ctx.stroke();
+  if(s.err !== false && Math.abs(cy - spY) > 4){
+    const ex = railR + 34;
+    ctx.strokeStyle = s.col; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(ex, cy); ctx.lineTo(ex, spY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ex - 5, cy); ctx.lineTo(ex + 5, cy); ctx.moveTo(ex - 5, spY); ctx.lineTo(ex + 5, spY); ctx.stroke();
+    ctx.fillStyle = s.col; ctx.font = "600 11px 'IBM Plex Mono', monospace";
+    ctx.fillText("e = " + ((s.sp - s.y) * 100).toFixed(0) + " cm", ex + 9, (cy + spY) / 2 + 4);
+  }
+  const bx = x0 + 26, bw = wd - 52, by = H - 36;
+  ctx.fillStyle = "#EEF3F6";
+  ctx.beginPath(); ctx.roundRect(bx, by, bw, 13, 6.5); ctx.fill();
+  const frac = Math.max(0, Math.min(1, Math.abs(s.V) / 12));
+  ctx.fillStyle = s.col;
+  ctx.beginPath(); ctx.roundRect(bx, by, bw * frac, 13, 6.5); ctx.fill();
+  ctx.fillStyle = COL.muted; ctx.font = "11px 'IBM Plex Mono', monospace"; ctx.textAlign = "left";
+  ctx.fillText("V = " + s.V.toFixed(1) + " V", bx, by - 6);
+  ctx.restore();
+}
+
+/* Signed contribution bars for the P/I/D terms, zero at center */
+function termBars(ctx, x, y, wd, terms){
+  ctx.save();
+  const rowH = 21, mid = x + wd * 0.5;
+  ctx.font = "600 11px 'IBM Plex Mono', monospace";
+  terms.forEach((t, k) => {
+    const ry = y + k * rowH;
+    ctx.fillStyle = "#EEF3F6";
+    ctx.beginPath(); ctx.roundRect(x, ry, wd, 13, 6.5); ctx.fill();
+    ctx.strokeStyle = COL.grid; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(mid, ry); ctx.lineTo(mid, ry + 13); ctx.stroke();
+    const frac = Math.max(-1, Math.min(1, t.v / 12));
+    ctx.fillStyle = t.col;
+    if(frac >= 0){ ctx.fillRect(mid, ry, (wd/2) * frac, 13); }
+    else { ctx.fillRect(mid + (wd/2) * frac, ry, -(wd/2) * frac, 13); }
+    ctx.textAlign = "right";
+    ctx.fillText(t.name, x - 8, ry + 11);
+    ctx.textAlign = "left";
+    ctx.fillText(t.v.toFixed(1) + " V", x + wd + 8, ry + 11);
+  });
+  ctx.restore();
+}
+
+/* ============================================================
+   WIDGET 0 — bang-bang vs proportional, side by side
+============================================================ */
+(() => {
+  const HGT = 280, SP = 1.0, KP = 6;
+  const { c, ctx, W } = setupCanvas("c0", HGT);
+  let bb, pp, Vbb = 0, Vpp = 0, t = 0, hist = [], anim = null;
+  function reset(){ bb = makeElevator(); pp = makeElevator(); Vbb = 0; Vpp = 0; t = 0; hist = []; }
+  reset();
+  if(reduceMotion){ bb.y = 1.09; pp.y = SP - 1.5/KP; Vbb = 0; Vpp = 1.5; }
+
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    ctx.strokeStyle = COL.grid; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(w/2, 12); ctx.lineTo(w/2, HGT - 12); ctx.stroke();
+    elevScene(ctx, 0, w/2, HGT, { y: bb.y, sp: SP, V: Vbb, col: COL.ink, name: "BANG-BANG (all or nothing)", ticks: false });
+    elevScene(ctx, w/2, w/2, HGT, { y: pp.y, sp: SP, V: Vpp, col: COL.p, name: "PROPORTIONAL (eases off)", ticks: false });
+  }
+
+  const p0a = setupCanvas("c0p1", 180), p0b = setupCanvas("c0p2", 170);
+  const w0det = document.getElementById("w0plots");
+  function drawPlots(){
+    if(!w0det.open || hist.length < 2 || !p0a.W()) return;
+    const x1 = Math.max(8, t);
+    linePlot(p0a.ctx, p0a.W(), 180, {
+      x0: 0, x1, y0: 0, y1: 1.5, xLabel: "time (s)", yLabel: "height (m)",
+      hlines: [{ y: SP, col: COL.sp, label: "setpoint" }],
+      series: [
+        { pts: hist.map(h => ({x: h.t, y: h.yb})), col: COL.ink, name: "bang-bang" },
+        { pts: hist.map(h => ({x: h.t, y: h.yp})), col: COL.p, name: "proportional" }
+      ]
+    });
+    linePlot(p0b.ctx, p0b.W(), 170, {
+      x0: 0, x1, y0: 0, y1: 12, xLabel: "time (s)", yLabel: "volts",
+      series: [
+        { pts: hist.map(h => ({x: h.t, y: h.vb})), col: COL.ink, name: "bang-bang V" },
+        { pts: hist.map(h => ({x: h.t, y: h.vp})), col: COL.p, name: "proportional V" }
+      ]
+    });
+  }
+  p0a.c._redraw = drawPlots; p0b.c._redraw = drawPlots;
+  w0det.addEventListener("toggle", drawPlots);
+  c._redraw = () => { draw(); drawPlots(); };
+
+  function tick(){
+    const dt = 0.02; // one physics step per frame ≈ half speed, so the slam and chatter read clearly
+    for(let k = 0; k < 1; k++){
+      t += dt;
+      Vbb = bb.y < SP ? 12 : 0;
+      bb.step(Vbb, dt);
+      Vpp = KP * (SP - pp.y);
+      pp.step(Vpp, dt);
+    }
+    hist.push({ t, yb: bb.y, yp: pp.y, vb: Vbb, vp: Vpp });
+    if(hist.length > 4000) hist = hist.filter((_, i) => i % 2 === 0); // keep full run, thin the samples
+    draw(); drawPlots();
+    if(t > 10){
+      anim = null;
+      if(!reduceMotion) setTimeout(() => { if(!anim){ reset(); anim = requestAnimationFrame(tick); } }, 2600);
+      return;
+    }
+    anim = requestAnimationFrame(tick);
+  }
+  function start(){ if(!anim){ reset(); anim = requestAnimationFrame(tick); } }
+  document.getElementById("w0replay").addEventListener("click", () => {
+    cancelAnimationFrame(anim); anim = null; start();
+  });
+  onVisible(c, start);
+  draw();
+})();
+
+/* ============================================================
+   WIDGET 1 — the P playground
+============================================================ */
+(() => {
+  const HGT = 280;
+  const { c, ctx, W } = setupCanvas("c1", HGT);
+  const el = makeElevator();
+  const spEl = document.getElementById("w1sp");
+  const kpEl = document.getElementById("w1kp");
+  const spOut = document.getElementById("w1spOut");
+  const kpOut = document.getElementById("w1kpOut");
+  let V = 0, e = 0, t = 0, hist = [], anim = null;
+  let ovBase = 0, ovMax = 0, ovDir = 1;
+  const sp = () => spEl.value / 100;
+
+  function newStepMetrics(){
+    ovBase = el.y; ovMax = 0; ovDir = sp() >= el.y ? 1 : -1;
+  }
+  newStepMetrics();
+
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    elevScene(ctx, 0, w, HGT, { y: el.y, sp: sp(), V, col: COL.p });
+  }
+
+  const p1a = setupCanvas("c1p1", 180), p1b = setupCanvas("c1p2", 170);
+  const w1det = document.getElementById("w1plots");
+  function drawPlots(){
+    if(!w1det.open || hist.length < 2 || !p1a.W()) return;
+    const x1 = Math.max(12, t);
+    linePlot(p1a.ctx, p1a.W(), 180, {
+      x0: 0, x1, y0: 0, y1: 1.5, xLabel: "time (s)", yLabel: "height (m)",
+      hlines: [{ y: sp(), col: COL.sp, label: "setpoint" }],
+      series: [{ pts: hist.map(h => ({x: h.t, y: h.y})), col: COL.ink, name: "height" }]
+    });
+    linePlot(p1b.ctx, p1b.W(), 170, {
+      x0: 0, x1, y0: -12, y1: 12, xLabel: "time (s)", yLabel: "volts",
+      hlines: [{ y: 0, col: COL.grid }],
+      series: [{ pts: hist.map(h => ({x: h.t, y: h.V})), col: COL.p, name: "V = kP · e" }]
+    });
+  }
+  p1a.c._redraw = drawPlots; p1b.c._redraw = drawPlots;
+  w1det.addEventListener("toggle", drawPlots);
+  c._redraw = () => { draw(); drawPlots(); };
+
+  function tick(){
+    const dt = 0.005, kP = +kpEl.value; // ~0.6x real time: transients stay visible
+    for(let k = 0; k < 2; k++){
+      e = sp() - el.y;
+      V = kP * e;
+      el.step(V, dt);
+    }
+    t += dt * 2;
+    hist.push({ t, y: el.y, V });
+    if(hist.length > 4000) hist = hist.filter((_, i) => i % 2 === 0);
+    ovMax = Math.max(ovMax, (el.y - sp()) * ovDir);
+    const stepSize = Math.abs(sp() - ovBase);
+    document.getElementById("w1rerr").textContent = (e * 100).toFixed(1) + " cm";
+    document.getElementById("w1rv").textContent = V.toFixed(2) + " V";
+    document.getElementById("w1rov").textContent = stepSize > 0.03 ? Math.max(0, ovMax / stepSize * 100).toFixed(0) + " %" : "—";
+    draw(); drawPlots();
+    anim = requestAnimationFrame(tick);
+  }
+  spEl.addEventListener("input", () => { spOut.textContent = sp().toFixed(2); newStepMetrics(); });
+  kpEl.addEventListener("input", () => { kpOut.textContent = kpEl.value; });
+  document.getElementById("w1reset").addEventListener("click", () => {
+    cancelAnimationFrame(anim); anim = null;
+    el.y = 0; el.v = 0; V = 0; e = 0; t = 0; hist = [];
+    newStepMetrics();
+    ["w1rerr","w1rv","w1rov"].forEach(id => document.getElementById(id).textContent = "—");
+    draw();
+    anim = requestAnimationFrame(tick);
+  });
+
+  // ambient setpoint flips until the user takes over
+  let ambient = true, ambT = 0, ambTimer = null;
+  function ambientFlip(){
+    if(!ambient) return;
+    ambT++;
+    spEl.value = ambT % 2 === 0 ? 100 : 60;
+    spOut.textContent = sp().toFixed(2);
+    newStepMetrics();
+    ambTimer = setTimeout(ambientFlip, 4500);
+  }
+  [spEl, kpEl].forEach(elm => {
+    ["pointerdown", "keydown"].forEach(ev => elm.addEventListener(ev, () => {
+      ambient = false; clearTimeout(ambTimer);
+    }));
+  });
+  onVisible(c, () => {
+    if(!anim) anim = requestAnimationFrame(tick);
+    ambTimer = setTimeout(ambientFlip, 4500);
+  });
+  draw();
+})();
+
+/* ============================================================
+   WIDGET 2 — the memory tank (P + I)
+============================================================ */
+(() => {
+  const HGT = 280, SP = 1.0;
+  const { c, ctx, W } = setupCanvas("c2", HGT);
+  const el = makeElevator();
+  const kpEl = document.getElementById("w2kp");
+  const kiEl = document.getElementById("w2ki");
+  let vp = 0, vi = 0, e = 0, integ = 0, t = 0, hist = [], anim = null;
+
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    elevScene(ctx, 0, w * 0.62, HGT, { y: el.y, sp: SP, V: vp + vi, col: COL.i });
+    const bx = w * 0.62 + 58, bw = Math.max(90, w * 0.38 - 110);
+    ctx.font = "600 12px 'IBM Plex Mono', monospace"; ctx.fillStyle = COL.muted; ctx.textAlign = "left";
+    ctx.fillText("THE TERMS", w * 0.62 + 14, 22);
+    termBars(ctx, bx, 46, bw, [
+      { name: "V_P", v: vp, col: COL.p },
+      { name: "V_I", v: vi, col: COL.i }
+    ]);
+    ctx.fillStyle = COL.muted; ctx.font = "11px 'IBM Plex Mono', monospace";
+    ctx.fillText("gravity bill: 1.50 V", bx, 112);
+  }
+
+  const p2a = setupCanvas("c2p1", 180), p2b = setupCanvas("c2p2", 170);
+  const w2det = document.getElementById("w2plots");
+  function drawPlots(){
+    if(!w2det.open || hist.length < 2 || !p2a.W()) return;
+    const x1 = Math.max(12, t);
+    linePlot(p2a.ctx, p2a.W(), 180, {
+      x0: 0, x1, y0: 0, y1: 1.5, xLabel: "time (s)", yLabel: "height (m)",
+      hlines: [{ y: SP, col: COL.sp, label: "setpoint" }],
+      series: [{ pts: hist.map(h => ({x: h.t, y: h.y})), col: COL.ink, name: "height" }]
+    });
+    linePlot(p2b.ctx, p2b.W(), 170, {
+      x0: 0, x1, y0: -4, y1: 12, xLabel: "time (s)", yLabel: "volts",
+      hlines: [{ y: 1.5, col: COL.muted, label: "gravity bill 1.5 V" }],
+      series: [
+        { pts: hist.map(h => ({x: h.t, y: h.vp})), col: COL.p, name: "V_P" },
+        { pts: hist.map(h => ({x: h.t, y: h.vi})), col: COL.i, name: "V_I" }
+      ]
+    });
+  }
+  p2a.c._redraw = drawPlots; p2b.c._redraw = drawPlots;
+  w2det.addEventListener("toggle", drawPlots);
+  c._redraw = () => { draw(); drawPlots(); };
+
+  function tick(){
+    const dt = 0.01, kP = +kpEl.value, kI = kiEl.value / 10; // half speed: the tank-filling is slow already
+    for(let k = 0; k < 2; k++){
+      e = SP - el.y;
+      integ += e * dt;
+      vp = kP * e;
+      vi = kI * integ;
+      el.step(vp + vi, dt);
+    }
+    t += dt * 2;
+    hist.push({ t, y: el.y, vp, vi });
+    if(hist.length > 4000) hist = hist.filter((_, i) => i % 2 === 0);
+    document.getElementById("w2rvp").textContent = vp.toFixed(2) + " V";
+    document.getElementById("w2rvi").textContent = vi.toFixed(2) + " V";
+    document.getElementById("w2rerr").textContent = (e * 100).toFixed(1) + " cm";
+    draw(); drawPlots();
+    anim = requestAnimationFrame(tick);
+  }
+  kpEl.addEventListener("input", () => document.getElementById("w2kpOut").textContent = kpEl.value);
+  kiEl.addEventListener("input", () => document.getElementById("w2kiOut").textContent = (kiEl.value/10).toFixed(1));
+  document.getElementById("w2reset").addEventListener("click", () => {
+    cancelAnimationFrame(anim); anim = null;
+    el.y = 0; el.v = 0; vp = vi = e = integ = 0; t = 0; hist = [];
+    ["w2rvp","w2rvi","w2rerr"].forEach(id => document.getElementById(id).textContent = "—");
+    draw();
+    anim = requestAnimationFrame(tick);
+  });
+  onVisible(c, () => { if(!anim) anim = requestAnimationFrame(tick); });
+  draw();
+})();
+
+/* ============================================================
+   WIDGET 3 — the shock absorber (P + D)
+============================================================ */
+(() => {
+  const HGT = 280;
+  const { c, ctx, W } = setupCanvas("c3", HGT);
+  const el = makeElevator();
+  const kpEl = document.getElementById("w3kp");
+  const kdEl = document.getElementById("w3kd");
+  let sp = 1.1, vp = 0, vd = 0, e = 0, ePrev = 0, t = 0, hist = [], anim = null;
+  let t0 = 0, ovBase = 0, ovMax = 0, ovDir = 1, settle = null, inBand = null;
+
+  function newStep(){
+    t0 = t; ovBase = el.y; ovMax = 0; ovDir = sp >= el.y ? 1 : -1;
+    settle = null; inBand = null;
+  }
+  newStep();
+
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    elevScene(ctx, 0, w * 0.62, HGT, { y: el.y, sp, V: vp + vd, col: COL.d });
+    const bx = w * 0.62 + 58, bw = Math.max(90, w * 0.38 - 110);
+    ctx.font = "600 12px 'IBM Plex Mono', monospace"; ctx.fillStyle = COL.muted; ctx.textAlign = "left";
+    ctx.fillText("THE TERMS", w * 0.62 + 14, 22);
+    termBars(ctx, bx, 46, bw, [
+      { name: "V_P", v: vp, col: COL.p },
+      { name: "V_D", v: vd, col: COL.d }
+    ]);
+  }
+
+  const p3a = setupCanvas("c3p1", 180), p3b = setupCanvas("c3p2", 170);
+  const w3det = document.getElementById("w3plots");
+  function drawPlots(){
+    if(!w3det.open || hist.length < 2 || !p3a.W()) return;
+    const x1 = Math.max(12, t);
+    linePlot(p3a.ctx, p3a.W(), 180, {
+      x0: 0, x1, y0: 0, y1: 1.5, xLabel: "time (s)", yLabel: "height (m)",
+      hlines: [{ y: sp, col: COL.sp, label: "setpoint" }],
+      series: [{ pts: hist.map(h => ({x: h.t, y: h.y})), col: COL.ink, name: "height" }]
+    });
+    linePlot(p3b.ctx, p3b.W(), 170, {
+      x0: 0, x1, y0: -12, y1: 12, xLabel: "time (s)", yLabel: "volts",
+      hlines: [{ y: 0, col: COL.grid }],
+      series: [
+        { pts: hist.map(h => ({x: h.t, y: h.vp})), col: COL.p, name: "V_P" },
+        { pts: hist.map(h => ({x: h.t, y: h.vd})), col: COL.d, name: "V_D" }
+      ]
+    });
+  }
+  p3a.c._redraw = drawPlots; p3b.c._redraw = drawPlots;
+  w3det.addEventListener("toggle", drawPlots);
+  c._redraw = () => { draw(); drawPlots(); };
+
+  function tick(){
+    const dt = 0.005, kP = +kpEl.value, kD = kdEl.value / 10; // ~0.6x real time: each ring is watchable
+    for(let k = 0; k < 2; k++){
+      e = sp - el.y;
+      const dedt = (e - ePrev) / dt;
+      ePrev = e;
+      vp = kP * e;
+      vd = kD * dedt;
+      el.step(vp + vd, dt);
+    }
+    t += dt * 2;
+    hist.push({ t, y: el.y, vp, vd });
+    if(hist.length > 4000) hist = hist.filter((_, i) => i % 2 === 0);
+    ovMax = Math.max(ovMax, (el.y - sp) * ovDir);
+    if(Math.abs(e) < 0.02){
+      if(inBand === null) inBand = t;
+      if(settle === null && t - inBand > 0.8) settle = inBand - t0;
+    } else inBand = null;
+    const stepSize = Math.abs(sp - ovBase);
+    document.getElementById("w3rov").textContent = stepSize > 0.03 ? Math.max(0, ovMax / stepSize * 100).toFixed(0) + " %" : "—";
+    document.getElementById("w3rvd").textContent = vd.toFixed(2) + " V";
+    document.getElementById("w3rsettle").textContent = settle !== null ? settle.toFixed(2) + " s" : "…";
+    draw(); drawPlots();
+    anim = requestAnimationFrame(tick);
+  }
+  function doStep(){
+    sp = sp > 0.85 ? 0.6 : 1.1;
+    ePrev = sp - el.y; // avoid a phantom derivative kick from the setpoint jump
+    newStep();
+  }
+  kpEl.addEventListener("input", () => document.getElementById("w3kpOut").textContent = kpEl.value);
+  kdEl.addEventListener("input", () => document.getElementById("w3kdOut").textContent = (kdEl.value/10).toFixed(1));
+  document.getElementById("w3step").addEventListener("click", doStep);
+  document.getElementById("w3reset").addEventListener("click", () => {
+    cancelAnimationFrame(anim); anim = null;
+    el.y = 0; el.v = 0; vp = vd = e = ePrev = 0; sp = 1.1; t = 0; hist = [];
+    newStep();
+    ["w3rov","w3rvd","w3rsettle"].forEach(id => document.getElementById(id).textContent = "—");
+    draw();
+    anim = requestAnimationFrame(tick);
+  });
+
+  // ambient steps until the user takes over
+  let ambient = true, ambTimer = null;
+  function ambientStep(){
+    if(!ambient) return;
+    doStep();
+    ambTimer = setTimeout(ambientStep, 5000);
+  }
+  [kpEl, kdEl, document.getElementById("w3step")].forEach(elm => {
+    ["pointerdown", "keydown"].forEach(ev => elm.addEventListener(ev, () => {
+      ambient = false; clearTimeout(ambTimer);
+    }));
+  });
+  onVisible(c, () => {
+    if(!anim) anim = requestAnimationFrame(tick);
+    ambTimer = setTimeout(ambientStep, 5000);
+  });
+  draw();
+})();
+
+/* ============================================================
+   WIDGET 4 — the tuning bay (full PID + spec + disturbance)
+============================================================ */
+(() => {
+  const HGT = 280;
+  const { c, ctx, W } = setupCanvas("c4", HGT);
+  const el = makeElevator();
+  const kpEl = document.getElementById("w4kp");
+  const kiEl = document.getElementById("w4ki");
+  const kdEl = document.getElementById("w4kd");
+  const loadBtn = document.getElementById("w4load");
+  let sp = 1.1, vp = 0, vi = 0, vd = 0, e = 0, ePrev = 0, integ = 0, t = 0, hist = [], anim = null;
+  let t0 = 0, ovBase = 0, ovMax = 0, ovDir = 1, settle = null, inBand = null;
+
+  function newEvent(){
+    t0 = t; ovBase = el.y; ovMax = 0; ovDir = sp >= el.y ? 1 : -1;
+    settle = null; inBand = null;
+  }
+  newEvent();
+
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    elevScene(ctx, 0, w * 0.62, HGT, { y: el.y, sp, V: vp + vi + vd, col: COL.sp });
+    const bx = w * 0.62 + 58, bw = Math.max(90, w * 0.38 - 110);
+    ctx.font = "600 12px 'IBM Plex Mono', monospace"; ctx.fillStyle = COL.muted; ctx.textAlign = "left";
+    ctx.fillText("THE TERMS", w * 0.62 + 14, 22);
+    termBars(ctx, bx, 46, bw, [
+      { name: "V_P", v: vp, col: COL.p },
+      { name: "V_I", v: vi, col: COL.i },
+      { name: "V_D", v: vd, col: COL.d }
+    ]);
+    ctx.fillStyle = COL.muted; ctx.font = "11px 'IBM Plex Mono', monospace";
+    ctx.fillText("hold bill: " + (el.G / el.A).toFixed(2) + " V", bx, 132);
+  }
+
+  const p4a = setupCanvas("c4p1", 180), p4b = setupCanvas("c4p2", 180);
+  const w4det = document.getElementById("w4plots");
+  function drawPlots(){
+    if(!w4det.open || hist.length < 2 || !p4a.W()) return;
+    const x1 = Math.max(12, t);
+    linePlot(p4a.ctx, p4a.W(), 180, {
+      x0: 0, x1, y0: 0, y1: 1.5, xLabel: "time (s)", yLabel: "height (m)",
+      hlines: [{ y: sp, col: COL.sp, label: "setpoint" }],
+      series: [{ pts: hist.map(h => ({x: h.t, y: h.y})), col: COL.ink, name: "height" }]
+    });
+    linePlot(p4b.ctx, p4b.W(), 180, {
+      x0: 0, x1, y0: -12, y1: 12, xLabel: "time (s)", yLabel: "volts",
+      hlines: [{ y: 0, col: COL.grid }],
+      series: [
+        { pts: hist.map(h => ({x: h.t, y: h.vp})), col: COL.p, name: "V_P" },
+        { pts: hist.map(h => ({x: h.t, y: h.vi})), col: COL.i, name: "V_I" },
+        { pts: hist.map(h => ({x: h.t, y: h.vd})), col: COL.d, name: "V_D" }
+      ]
+    });
+  }
+  p4a.c._redraw = drawPlots; p4b.c._redraw = drawPlots;
+  w4det.addEventListener("toggle", drawPlots);
+  c._redraw = () => { draw(); drawPlots(); };
+
+  function mark(id, txt, pass){
+    const v = document.getElementById(id);
+    v.textContent = (pass === null ? "" : pass ? "✓ " : "✗ ") + txt;
+    v.style.color = pass === null ? "" : pass ? COL.i : COL.p;
+  }
+
+  function tick(){
+    const dt = 0.005, kP = +kpEl.value, kI = kiEl.value / 10, kD = kdEl.value / 10; // ~0.6x real time
+    for(let k = 0; k < 2; k++){
+      e = sp - el.y;
+      integ += e * dt;
+      const dedt = (e - ePrev) / dt;
+      ePrev = e;
+      vp = kP * e;
+      vi = kI * integ;
+      vd = kD * dedt;
+      el.step(vp + vi + vd, dt);
+    }
+    t += dt * 2;
+    hist.push({ t, y: el.y, vp, vi, vd });
+    if(hist.length > 4000) hist = hist.filter((_, i) => i % 2 === 0);
+    ovMax = Math.max(ovMax, (el.y - sp) * ovDir);
+    if(Math.abs(e) < 0.02){
+      if(inBand === null) inBand = t;
+      if(settle === null && t - inBand > 0.8) settle = inBand - t0;
+    } else inBand = null;
+    const stepSize = Math.abs(sp - ovBase);
+    if(stepSize > 0.03){
+      const ovPct = Math.max(0, ovMax / stepSize * 100);
+      mark("w4rov", ovPct.toFixed(0) + " %", ovPct < 10);
+    } else mark("w4rov", "—", null);
+    if(settle !== null) mark("w4rsettle", settle.toFixed(2) + " s", settle < 2.0);
+    else mark("w4rsettle", "…", null);
+    const eCm = Math.abs(e) * 100;
+    if(t - t0 > 3) mark("w4rerr", eCm.toFixed(1) + " cm", eCm < 1);
+    else mark("w4rerr", eCm.toFixed(1) + " cm", null);
+    draw(); drawPlots();
+    anim = requestAnimationFrame(tick);
+  }
+  kpEl.addEventListener("input", () => document.getElementById("w4kpOut").textContent = kpEl.value);
+  kiEl.addEventListener("input", () => document.getElementById("w4kiOut").textContent = (kiEl.value/10).toFixed(1));
+  kdEl.addEventListener("input", () => document.getElementById("w4kdOut").textContent = (kdEl.value/10).toFixed(1));
+  document.getElementById("w4step").addEventListener("click", () => {
+    sp = sp > 0.85 ? 0.6 : 1.1;
+    ePrev = sp - el.y;
+    newEvent();
+  });
+  loadBtn.addEventListener("click", () => {
+    const on = loadBtn.getAttribute("aria-pressed") !== "true";
+    loadBtn.setAttribute("aria-pressed", on);
+    loadBtn.textContent = "heavy load: " + (on ? "on" : "off");
+    el.G = on ? 8.4 : 6; // the load raises the gravity bill from 1.5 V to 2.1 V
+    newEvent();
+  });
+  document.getElementById("w4reset").addEventListener("click", () => {
+    cancelAnimationFrame(anim); anim = null;
+    el.y = 0; el.v = 0; vp = vi = vd = e = ePrev = integ = 0; sp = 1.1; t = 0; hist = [];
+    newEvent();
+    ["w4rov","w4rsettle","w4rerr"].forEach(id => { const v = document.getElementById(id); v.textContent = "—"; v.style.color = ""; });
+    draw();
+    anim = requestAnimationFrame(tick);
+  });
+  onVisible(c, () => { if(!anim) anim = requestAnimationFrame(tick); });
+  draw();
+})();
+
+})();
+</script>
+</body>
+</html>
