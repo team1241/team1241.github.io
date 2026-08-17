@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Count Your Steps — Odometry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F7F9;
+  --grid:#DCE6EC;
+  --panel:#FFFFFF;
+  --ink:#16283B;
+  --muted:#5B7186;
+  --line:#C7D5DE;
+  --od:#7A4FD0;      /* the odometry estimate: violet (dead reckoning's color) */
+  --gy:#E07B1F;      /* gyro / heading: orange */
+  --wh:#0B8F6B;      /* wheels & encoders: green */
+  --od-soft:#EFE8FB;
+  --gy-soft:#FBEEDD;
+  --wh-soft:#DFF3EC;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+
+body{
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    var(--paper);
+  background-size:28px 28px, 28px 28px, auto;
+  color:var(--ink);
+  font-family:"Public Sans", system-ui, -apple-system, sans-serif;
+  font-size:17px;
+  line-height:1.65;
+}
+.wrap{max-width:860px;margin:0 auto;padding:0 20px 96px}
+
+/* ---------- hero ---------- */
+header{padding:72px 0 40px;position:relative}
+a.home{
+  display:inline-block;margin-bottom:22px;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink);text-decoration:none;
+  background:var(--panel);border:1.5px solid var(--line);
+  border-radius:999px;padding:8px 16px;
+  transition:border-color .15s ease, background .15s ease;
+}
+a.home:hover{border-color:var(--od);background:var(--od-soft);color:var(--ink)}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:14px;
+}
+h1{
+  font-family:"Space Grotesk",sans-serif;font-weight:700;
+  font-size:clamp(38px,7vw,62px);line-height:1.05;letter-spacing:-0.02em;
+}
+h1 .q{color:var(--od)}
+.sub{margin-top:18px;max-width:56ch;color:var(--muted);font-size:19px}
+.legend{
+  display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:26px;
+  font-family:"IBM Plex Mono",monospace;font-size:13px;
+}
+.legend span{display:flex;align-items:center;gap:8px}
+.chip{width:22px;height:0;border-top:3px solid var(--ink);display:inline-block}
+.chip.dashed{border-top-style:dashed}
+
+/* hero: a walked path */
+.hero-path{position:absolute;right:8px;top:96px;width:112px;height:112px;opacity:.95}
+@media (max-width:760px){ .hero-path{display:none} }
+
+/* ---------- sections ---------- */
+section{margin-top:64px}
+h2{
+  font-family:"Space Grotesk",sans-serif;font-weight:700;
+  font-size:clamp(26px,4.4vw,34px);letter-spacing:-0.015em;line-height:1.15;
+}
+.step{
+  font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted);
+  letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;
+}
+section p{margin-top:16px;max-width:64ch}
+strong{font-weight:600}
+.od-t{color:var(--od);font-weight:600}
+.gy-t{color:var(--gy);font-weight:600}
+.wh-t{color:var(--wh);font-weight:600}
+a{color:var(--od);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:#6740B2}
+
+.callout{
+  margin-top:22px;padding:16px 18px;background:var(--panel);
+  border:1px solid var(--line);border-left:4px solid var(--od);
+  border-radius:8px;max-width:64ch;
+}
+.callout.orange{border-left-color:var(--gy)}
+.callout.green{border-left-color:var(--wh)}
+
+/* ---------- equations ---------- */
+.eq{
+  margin-top:18px;padding:16px 20px;background:var(--panel);
+  border:1px solid var(--line);border-radius:8px;max-width:64ch;
+  font-family:"IBM Plex Mono",monospace;font-size:15px;
+}
+.eq .line{padding:3px 0;letter-spacing:.01em}
+.eq .line b{color:var(--od);font-weight:600;margin-right:6px}
+.eq .who{
+  display:block;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);
+  font-size:13.5px;color:var(--muted);font-family:"Public Sans",sans-serif;
+  white-space:normal;line-height:1.7;
+}
+.eq .who .def{display:block;padding:1.5px 0}
+.eq code{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink);
+  background:#EEF3F6;border:1px solid var(--line);border-radius:4px;padding:1px 6px;
+}
+.eq.glossary .line{font-family:"Public Sans",sans-serif;font-size:14.5px;color:var(--muted);line-height:1.9}
+.eq .who .note{display:block;margin-top:8px}
+.eq sub,.eq sup{font-size:11px}
+
+/* ---------- widget shell ---------- */
+.widget{
+  margin-top:26px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:0 1px 0 rgba(22,40,59,.05), 0 10px 30px -18px rgba(22,40,59,.25);
+  overflow:hidden;
+}
+.widget-head{
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  padding:14px 18px;border-bottom:1px solid var(--line);
+  font-family:"IBM Plex Mono",monospace;font-size:13px;
+}
+.widget-head .name{font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.widget-head .tag{color:var(--muted)}
+.widget-body{padding:18px}
+canvas{display:block;width:100%;border:1px solid var(--line);border-radius:8px;background:#FBFDFE}
+
+.controls{display:flex;flex-wrap:wrap;gap:14px 26px;margin-top:16px;align-items:flex-end}
+.control{min-width:170px;flex:1}
+.control label{
+  display:flex;justify-content:space-between;
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted);
+  margin-bottom:6px;
+}
+.control label output{color:var(--ink);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--ink);cursor:pointer}
+button{
+  font-family:"Space Grotesk",sans-serif;font-weight:500;font-size:15px;
+  background:var(--ink);color:#fff;border:none;border-radius:8px;
+  padding:10px 18px;cursor:pointer;
+}
+button:hover{background:#233C57}
+button:focus-visible, input:focus-visible{outline:3px solid var(--od);outline-offset:2px}
+button.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+button.ghost:hover{background:rgba(22,40,59,.06)}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap}
+
+.toggles{display:flex;flex-wrap:wrap;gap:8px}
+.toggle{
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;
+  border:1.5px solid var(--line);background:#fff;color:var(--muted);
+  border-radius:999px;padding:7px 14px;cursor:pointer;
+}
+.toggle[aria-pressed=true]{color:#fff}
+.toggle.t-def[aria-pressed=true]{background:var(--gy);border-color:var(--gy)}
+
+.readouts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.readout{
+  flex:1;min-width:130px;padding:10px 14px;border-radius:8px;
+  border:1px solid var(--line);background:#FBFDFE;
+  font-family:"IBM Plex Mono",monospace;
+}
+.readout .k{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout .v{font-size:20px;font-weight:600;margin-top:2px}
+.readout.r-od{background:var(--od-soft)} .readout.r-od .v{color:var(--od)}
+.readout.r-gy{background:var(--gy-soft)} .readout.r-gy .v{color:var(--gy)}
+.readout.r-wh{background:var(--wh-soft)} .readout.r-wh .v{color:var(--wh)}
+
+.hint{margin-top:12px;font-size:14.5px;color:var(--muted);max-width:64ch}
+
+/* ---------- collapsible plots ---------- */
+details.plots{
+  margin-top:14px;border:1px solid var(--line);border-radius:8px;
+  background:#FBFDFE;overflow:hidden;
+}
+details.plots summary{
+  cursor:pointer;padding:11px 14px;list-style:none;
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;
+  color:var(--muted);display:flex;align-items:center;gap:9px;user-select:none;
+}
+details.plots summary::-webkit-details-marker{display:none}
+details.plots summary::before{content:"▸";color:var(--od);transition:transform .18s}
+details[open].plots summary::before{transform:rotate(90deg)}
+@media (prefers-reduced-motion:reduce){details.plots summary::before{transition:none}}
+details.plots summary:hover{color:var(--ink)}
+details.plots .plotbody{padding:0 14px 14px}
+details.plots canvas{background:#fff}
+details.plots .cap{
+  margin-top:10px;font-size:13.5px;color:var(--muted);line-height:1.55;
+  font-family:"Public Sans",sans-serif;
+}
+a.next{
+  display:block;margin-top:56px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px 24px;color:inherit;text-decoration:none;
+  transition:border-color .15s ease, background .15s ease;
+}
+a.next:hover{border-color:var(--od);background:var(--od-soft)}
+a.next .k{
+  display:block;font-family:"IBM Plex Mono",monospace;font-size:12px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;
+}
+a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15rem}
+.footer{
+  margin-top:80px;padding-top:24px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:14.5px;font-family:"IBM Plex Mono",monospace;
+}
+@media (max-width:560px){ body{font-size:16px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <a class="home" href="index.html">← All lessons</a>
+  <svg class="hero-path" viewBox="0 0 112 112" aria-hidden="true">
+    <path d="M14,96 C34,84 20,58 44,52 C70,45 60,20 92,18" fill="none" stroke="#16283B" stroke-width="3" stroke-dasharray="2,7" stroke-linecap="round"/>
+    <circle cx="14" cy="96" r="5" fill="none" stroke="#16283B" stroke-width="2.5"/>
+    <circle class="pulse" r="4.5" fill="#7A4FD0"><animateMotion dur="5s" repeatCount="indefinite" path="M14,96 C34,84 20,58 44,52 C70,45 60,20 92,18"/></circle>
+  </svg>
+  <div class="eyebrow">Odometry · pose · dead reckoning · WPILib</div>
+  <h1>Count your <span class="q">steps</span>.</h1>
+  <p class="sub">There's no GPS under the field carpet. A robot that wants to know where it is must do what sailors did for centuries: know exactly where it started, then carefully add up every step since. That bookkeeping is odometry — and its arch-enemy is a wheel that lies.</p>
+  <div class="legend">
+    <span><span class="chip dashed" style="border-color:var(--ink)"></span>where it really is (truth)</span>
+    <span><span class="chip" style="border-color:var(--od)"></span>where it thinks it is (odometry)</span>
+    <span><span class="chip" style="border-color:var(--gy)"></span>gyro / heading</span>
+    <span><span class="chip" style="border-color:var(--wh)"></span>wheels &amp; encoders</span>
+  </div>
+</header>
+
+<!-- ============ 1. dead reckoning ============ -->
+<section>
+  <div class="step">Part 1 / The oldest trick in navigation</div>
+  <h2>Start known. Add up every move.</h2>
+  <p>Navigators call this idea <strong>dead reckoning</strong>: no outside references, just your last known position plus everything you've done since. On a robot, the "everything you've done" comes from <span class="wh-t">wheel encoders</span> and a <span class="gy-t">gyro</span>, and the bookkeeping produces a <strong>pose</strong> — the robot's full answer to "where am I":</p>
+
+  <div class="eq">
+    <div class="line"><b>pose</b> (x, y, θ)</div>
+    <span class="who"><span class="def"><code>x</code>, <code>y</code> — the robot's position on the field, in meters, in a fixed field frame</span><span class="def"><code>θ</code> — the robot's heading ("theta"): which way it faces, measured counter-clockwise</span><span class="note">Position alone isn't enough — a robot at the right (x, y) facing the wrong way scores exactly zero points. Pose is position <em>plus</em> heading, always.</span></span>
+  </div>
+
+  <p>And here is the whole promise and the whole problem, in one picture. This robot drives a square with its eyes closed — no camera, no beacons — while odometry counts its steps. The wheels lie a little (they always do), and every lie is added into the running total, forever:</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 00 — The blind square</span><span class="tag">truth vs bookkeeping</span></div>
+    <div class="widget-body">
+      <canvas id="c0" height="300"></canvas>
+      <details class="plots" id="w0plots">
+        <summary>Plot — position error vs distance traveled</summary>
+        <div class="plotbody">
+          <canvas id="c0p1" height="180"></canvas>
+          <p class="cap">The gap between truth and estimate, plotted against total distance driven. Look where the jumps happen: at the <em>corners</em>, where the sharp direction change scrubs the wheels for an instant. Between corners the wheel-calibration errors gnaw slowly. Either way the total only ever ratchets upward — odometry has no mechanism for forgetting a mistake.</p>
+        </div>
+      </details>
+      <div class="controls">
+        <div class="btnrow">
+          <button id="w0reset" class="ghost">Restart</button>
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout r-od"><div class="k">Position error</div><div class="v" id="w0rerr">—</div></div>
+        <div class="readout"><div class="k">Distance driven</div><div class="v" id="w0rdist">—</div></div>
+      </div>
+      <p class="hint">Watch a lap or two: the <span class="od-t">violet estimate</span> starts glued to the <strong>dashed truth</strong>, then peels away a few centimeters per lap. Nothing dramatic went wrong — the wheels are fractionally miscalibrated and every sharp corner scrubs them for a blink. Dead reckoning never forgets a mistake; it only accumulates. Open the plot below and watch <em>where</em> the error jumps.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. one wheel ============ -->
+<section>
+  <div class="step">Part 2 / One wheel first</div>
+  <h2>What an encoder actually knows</h2>
+  <p>Strip it to one wheel. An <strong>encoder</strong> counts how much the wheel <em>shaft</em> has turned — thousands of ticks per revolution. Multiply by the wheel's circumference and you get distance:</p>
+
+  <div class="eq">
+    <div class="line"><b>distance</b> d = rotations × π·D</div>
+    <span class="who"><span class="def"><code>d</code> — how far the wheel has rolled (m)</span><span class="def"><code>rotations</code> — wheel revolutions counted by the encoder (ticks ÷ ticks-per-revolution, through the gear ratio)</span><span class="def"><code>π·D</code> — the wheel's circumference: distance covered per revolution, from diameter <code>D</code></span><span class="note">Spot the fine print: the encoder measures how much the wheel <em>turned</em>, then this formula <em>assumes</em> the wheel gripped the floor the whole time. Every time it spins without gripping — slip, scrub, getting shoved — the assumption is false and the bookkeeping quietly absorbs a lie.</span></span>
+  </div>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 01 — The honest ruler</span><span class="tag">encoder vs ground truth</span></div>
+    <div class="widget-body">
+      <canvas id="c1" height="220"></canvas>
+      <div class="controls">
+        <div class="control">
+          <label><span>Wheel slip (%)</span><output id="w1slipOut">0%</output></label>
+          <input type="range" id="w1slip" min="0" max="30" value="0" aria-label="Percent of wheel rotation lost to slip">
+        </div>
+        <div class="btnrow">
+          <button id="w1go">Drive 3 m</button>
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout r-wh"><div class="k">Encoder says</div><div class="v" id="w1renc">—</div></div>
+        <div class="readout"><div class="k">Actually moved</div><div class="v" id="w1rtrue">—</div></div>
+        <div class="readout r-od"><div class="k">The lie</div><div class="v" id="w1rerr">—</div></div>
+      </div>
+      <p class="hint">Experiments: <strong>(1)</strong> Slip at 0% — the wheel lays down perfectly even tread marks, one per eighth-turn, and encoder and tape measure agree to the millimeter. Encoders are genuinely superb sensors. <strong>(2)</strong> Slip at 15% — now watch the ground: the tread marks bunch closer together and an orange skid streak appears, because the wheel is turning more than it travels. The encoder counts the <em>turning</em>, so it over-reports — the violet ghost is where the bookkeeping believes the wheel is. <strong>(3)</strong> Crank it to 30% — this is what a push match against another robot looks like to your odometry: tread marks piling up, robot barely moving, estimate marching confidently away.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. heading ============ -->
+<section>
+  <div class="step">Part 3 / Heading is sacred</div>
+  <h2>A small angle is a big lie</h2>
+  <p>Distance errors add up politely — centimeter here, centimeter there. Heading errors are different: a heading error <em>rotates every meter you drive afterwards</em>. Get θ wrong by a few degrees and your position error grows with every step, even if the wheels count perfectly:</p>
+
+  <div class="eq">
+    <div class="line"><b>the miss</b> miss = d · sin(φ)</div>
+    <span class="who"><span class="def"><code>miss</code> — how far sideways you end up from where you think you are (m)</span><span class="def"><code>d</code> — distance driven while the heading was wrong (m)</span><span class="def"><code>φ</code> — the heading error ("phi"), the angle between where you think you're pointed and where you're actually pointed</span><span class="note">Numbers to feel: 5° of heading error costs 8.7 cm of position error <em>per meter driven</em>. Drive a 10 m auto path with 5° of error and you arrive nearly a meter off. This is why heading gets its own dedicated sensor.</span></span>
+  </div>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 02 — The protractor tax</span><span class="tag">heading error × distance</span></div>
+    <div class="widget-body">
+      <canvas id="c2" height="240"></canvas>
+      <div class="controls">
+        <div class="control">
+          <label><span>Heading error φ (°)</span><output id="w2phiOut">5°</output></label>
+          <input type="range" id="w2phi" min="-10" max="10" value="5" aria-label="Heading error in degrees">
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout"><div class="k">Distance driven</div><div class="v" id="w2rd">—</div></div>
+        <div class="readout r-od"><div class="k">The miss</div><div class="v" id="w2rmiss">—</div></div>
+        <div class="readout r-gy"><div class="k">Miss per meter</div><div class="v" id="w2rrate">—</div></div>
+      </div>
+      <p class="hint">Set φ = 5° and watch a 4 m drive: the miss readout lands at ~35 cm — 8.7 cm for each meter, exactly sin(5°). Now try φ = 2°, a heading error you'd barely notice by eye: still 3.5 cm per meter. The lesson robots take from this: <strong>never derive heading from the wheels</strong> (every scrub corrupts it) — carry a <span class="gy-t">gyro</span>, which measures rotation directly and holds to a fraction of a degree over a match. WPILib's odometry classes won't even let you skip it: the gyro angle is a required argument.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. swerve odometry ============ -->
+<section>
+  <div class="step">Part 4 / The full loop</div>
+  <h2>Swerve odometry: vote, rotate, accumulate</h2>
+  <p>Now assemble the real thing. Fifty times a second, each swerve module reports its distance rolled and its steering angle. From there it's three moves — and the first one you already own: it's the <a href="four-wheels-one-motion-swerve-kinematics.html">forward kinematics vote from the kinematics lesson</a>, run on distances instead of speeds:</p>
+
+  <div class="eq">
+    <div class="line"><b>1 vote</b> (Δx<sub>r</sub>, Δy<sub>r</sub>) = forward_kinematics(module Δdistances, angles)</div>
+    <div class="line"><b>2 rotate</b> Δx = Δx<sub>r</sub>·cos θ − Δy<sub>r</sub>·sin θ&nbsp;&nbsp;&nbsp;Δy = Δx<sub>r</sub>·sin θ + Δy<sub>r</sub>·cos θ</div>
+    <div class="line"><b>3 add</b> x ← x + Δx&nbsp;&nbsp;&nbsp;y ← y + Δy&nbsp;&nbsp;&nbsp;θ ← gyro</div>
+    <span class="who"><span class="def"><code>module Δdistances</code> — how far each wheel rolled this tick, from its encoder</span><span class="def"><code>(Δx<sub>r</sub>, Δy<sub>r</sub>)</code> — the chassis's step this tick, in its own robot frame: the wheels' voted answer</span><span class="def"><code>θ</code> — the heading, taken from the gyro (Part 3 explained why it's never taken from the wheels)</span><span class="def"><code>(Δx, Δy)</code> — the same step, rotated into the fixed field frame so steps can be added across headings</span><span class="note">That's all odometry is: a tiny step measured in the robot's frame, rotated into the field's frame, added to the running total. Repeat forever.</span></span>
+  </div>
+
+  <p>Drive it. And then do what match play does — get bumped, get pinned against a wall — and watch what each one does to the bookkeeping:</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 03 — Truth vs bookkeeping</span><span class="tag">full swerve odometry</span></div>
+    <div class="widget-body">
+      <p style="margin-top:0;font-size:15px;color:var(--muted)">Drive it with your keyboard — <strong>WASD</strong> to translate (robot-relative), <strong>Q / E</strong> to spin — or with the sliders below. Keys work while the widget is on screen.</p>
+      <div class="toggles" style="margin-bottom:14px">
+        <button class="toggle t-def" id="w3def" aria-pressed="false">defense bot: off</button>
+      </div>
+      <canvas id="c3" height="340"></canvas>
+      <details class="plots" id="w3plots">
+        <summary>Plot — position error vs time</summary>
+        <div class="plotbody">
+          <canvas id="c3p1" height="180"></canvas>
+          <p class="cap">Clean driving: a slow patient creep. Each shove: an instant staircase jump that never comes back down — odometry has no mechanism for noticing it was moved. Each reset: the error snaps to zero and the accumulation starts over.</p>
+        </div>
+      </details>
+      <div class="controls">
+        <div class="control">
+          <label><span>vx (m/s)</span><output id="w3vxOut">1.0</output></label>
+          <input type="range" id="w3vx" min="-200" max="200" value="100" step="10" aria-label="Commanded forward speed">
+        </div>
+        <div class="control">
+          <label><span>vy (m/s)</span><output id="w3vyOut">0.0</output></label>
+          <input type="range" id="w3vy" min="-200" max="200" value="0" step="10" aria-label="Commanded sideways speed">
+        </div>
+        <div class="control">
+          <label><span>ω (rad/s)</span><output id="w3omOut">0.8</output></label>
+          <input type="range" id="w3om" min="-300" max="300" value="80" step="10" aria-label="Commanded spin rate">
+        </div>
+        <div class="btnrow">
+          <button id="w3bump">Bump!</button>
+          <button id="w3resetOdo">Reset odometry</button>
+          <button id="w3reset" class="ghost">Restart</button>
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout r-od"><div class="k">Position error</div><div class="v" id="w3rerr">—</div></div>
+        <div class="readout"><div class="k">Truth (x, y)</div><div class="v" id="w3rtrue">—</div></div>
+        <div class="readout r-od"><div class="k">Estimate (x, y)</div><div class="v" id="w3rest">—</div></div>
+      </div>
+      <p class="hint">Experiments: <strong>(1)</strong> Drive gently and watch the error readout creep — that's the Widget 00 tax. <strong>(2)</strong> Press <em>Bump!</em> a couple of times: another robot just shoved you; your wheels never turned, so the <span class="od-t">estimate stands still while the truth jumps</span> — and the offset is permanent. <strong>(3)</strong> Drive straight into a wall and keep pushing: now it's reversed — the wheels spin and scrub while the truth stops, so the estimate happily drives through the wall. (If it sails clean off the map it pins to the edge of the view with an arrow, and the error readout keeps counting.) <strong>(4)</strong> Press <em>Reset odometry</em> — with a trusted position (a camera fix, a known starting spot), the bookkeeping snaps back to truth and starts fresh. Notice what that button needs: <em>information from outside the wheels</em>. <strong>(5)</strong> Toggle the <span class="gy-t">defense bot</span> on and just try to drive your route: every hit staircases the error while your wheels swear nothing happened. A full match of that treatment is exactly why serious teams bolt on a camera and fuse.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. drift & the fix ============ -->
+<section>
+  <div class="step">Part 5 / WPILib &amp; what comes next</div>
+  <h2>Drift is the deal you signed</h2>
+  <p>So odometry is a bargain: silky-smooth, 50-times-a-second position — in exchange for error that only ever grows. During autonomous, with no contact, it's superb. In a match, every bump and pin and push moves the truth without moving the books. In WPILib the whole machine is two calls, and note the gyro angle riding along in both:</p>
+
+  <div class="eq">
+    <div class="line">odometry = new SwerveDriveOdometry(kinematics, gyro.getRotation2d(), positions, startPose);</div>
+    <div class="line">pose = odometry.update(gyro.getRotation2d(), positions);</div>
+    <span class="who"><span class="def"><code>SwerveDriveOdometry</code> — the bookkeeping object; it needs your kinematics (the vote), the gyro, and where you started</span><span class="def"><code>positions</code> — an array of SwerveModulePosition: each module's total distance rolled (m) and current angle</span><span class="def"><code>update(...)</code> — steps 1-2-3 from Part 4; call it every loop and it returns the current pose</span><span class="def"><code>resetPosition(...)</code> — the "Reset odometry" button: must be called whenever you reset encoders or the gyro, or learn your true pose from outside</span><span class="note">Docs: <a href="https://docs.wpilib.org/en/stable/docs/software/kinematics-and-odometry/swerve-drive-odometry.html">Swerve Drive Odometry</a>. WPILib's own accuracy note says it plainly: estimates drift over time, "especially as your robot comes into contact with other robots" — you just watched exactly that in Widget 03.</span></span>
+  </div>
+
+  <p>And the ending you can now see coming: a sensor that's smooth-but-drifting, plus an occasional absolute fix from a camera spotting an AprilTag — two imperfect answers begging to be fused. That is precisely the sensor-fusion story of <a href="where-am-i-kalman-filters.html">the next lesson</a>, and WPILib ships it ready-made as <a href="https://docs.wpilib.org/en/stable/docs/software/advanced-controls/state-space/state-space-pose-estimators.html">SwerveDrivePoseEstimator</a> — a drop-in upgrade to the odometry class that accepts vision measurements and weighs them against the wheel data. Odometry counts the steps; fusion keeps the count honest. (For the mathematics under all of it, the <a href="https://github.com/calcmogul/controls-engineering-in-frc">Controls Engineering in FRC</a> textbook is the deep end.)</p>
+</section>
+
+<!-- ============ 6. recap ============ -->
+<section>
+  <div class="step">Part 6 / Recap</div>
+  <h2>Five ideas to walk away with</h2>
+  <p><strong>1. Odometry is dead reckoning with receipts.</strong> Known start, plus every measured step since, added up 50 times a second into a pose (x, y, θ).</p>
+  <p><strong>2. Encoders measure the wheel, not the world.</strong> The math assumes grip; every slip, scrub, and shove is a lie absorbed silently into the total.</p>
+  <p><strong>3. Heading is sacred.</strong> Angle errors multiply by every meter you drive — 5° costs 8.7 cm per meter — so heading comes from the gyro, never from the wheels.</p>
+  <p><strong>4. Swerve odometry is three moves.</strong> The wheels vote (forward kinematics), the step rotates into the field frame, the total accumulates. You already knew move one.</p>
+  <p><strong>5. Drift is structural, and the fix comes from outside.</strong> Wheel bookkeeping can only accumulate; only an absolute reference — a camera, a known pose — can correct it. Fusing the two is the whole job of <a href="where-am-i-kalman-filters.html">the next lesson</a>.</p>
+  <div class="eq glossary">
+    <div class="line"><code>odometry</code> — tracking pose by accumulating measured wheel motion</div>
+    <div class="line"><code>pose</code> — position plus heading: (x, y, θ)</div>
+    <div class="line"><code>dead reckoning</code> — known start + sum of every move since, no outside references</div>
+    <div class="line"><code>encoder</code> — counts shaft rotation; distance follows only if the wheel gripped</div>
+    <div class="line"><code>gyro</code> — measures rotation directly; the trusted source for θ</div>
+    <div class="line"><code>slip / scrub</code> — wheel motion that isn't robot motion; odometry's poison</div>
+    <div class="line"><code>drift</code> — accumulated estimate error; grows with distance and contact</div>
+    <div class="line"><code>pose estimator</code> — odometry + absolute fixes, fused Kalman-style</div>
+    <span class="who">Pocket glossary — the whole page, one line each. Further reading: <a href="https://docs.wpilib.org/en/stable/docs/software/kinematics-and-odometry/swerve-drive-odometry.html">WPILib swerve odometry</a> and the <a href="https://github.com/calcmogul/controls-engineering-in-frc">Controls Engineering in FRC</a> textbook.</span>
+  </div>
+</section>
+
+<a class="next" href="where-am-i-kalman-filters.html">
+  <span class="k">Next lesson</span>
+  <span class="t">Where Am I? — Sensor Fusion &amp; Kalman Filters →</span>
+</a>
+
+<div class="footer">Built as an interactive lesson · the drifting estimates on this page are real integrations of imperfect wheel data — the error you watch grow is the actual arithmetic, not a script.</div>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+/* ---------- helpers ---------- */
+function randn(){
+  let u = 0, v = 0;
+  while(u === 0) u = Math.random();
+  while(v === 0) v = Math.random();
+  return Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v);
+}
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const COL = {
+  ink: css("--ink"), od: css("--od"), gy: css("--gy"), wh: css("--wh"),
+  muted: css("--muted"), grid: "#E4EDF2"
+};
+function setupCanvas(id, cssHeight){
+  const c = document.getElementById(id);
+  const ctx = c.getContext("2d");
+  function fit(){
+    const dpr = window.devicePixelRatio || 1;
+    const w = c.clientWidth || c.parentElement.clientWidth;
+    c.width = Math.round(w * dpr);
+    c.height = Math.round(cssHeight * dpr);
+    c.style.height = cssHeight + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (c._redraw) c._redraw();
+  }
+  new ResizeObserver(fit).observe(c);
+  fit();
+  return { c, ctx, W: () => c.clientWidth, H: () => cssHeight };
+}
+function grid(ctx, W, H){
+  ctx.strokeStyle = COL.grid; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for(let x = 28; x < W; x += 28){ ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+  for(let y = 28; y < H; y += 28){ ctx.moveTo(0, y); ctx.lineTo(W, y); }
+  ctx.stroke();
+}
+function arrow(ctx, x1, y1, x2, y2, color, width){
+  ctx.save();
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width || 1.6;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  const a = Math.atan2(y2 - y1, x2 - x1), L = 8;
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - L*Math.cos(a - 0.42), y2 - L*Math.sin(a - 0.42));
+  ctx.lineTo(x2 - L*Math.cos(a + 0.42), y2 - L*Math.sin(a + 0.42));
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+/* Canvas label with a paper-colored halo so moving robots never bury it */
+function labelText(ctx, txt, x, y, col, font){
+  ctx.save();
+  ctx.font = font || "600 11px 'IBM Plex Mono', monospace";
+  ctx.textAlign = "left";
+  ctx.strokeStyle = "rgba(251,253,254,.9)"; ctx.lineWidth = 4; ctx.lineJoin = "round";
+  ctx.strokeText(txt, x, y);
+  ctx.fillStyle = col;
+  ctx.fillText(txt, x, y);
+  ctx.restore();
+}
+function linePlot(ctx, W, H, cfg){
+  const padL = 48, padR = 12, padT = 16, padB = 30;
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = COL.ink; ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, H - padB); ctx.lineTo(W - padR, H - padB);
+  ctx.stroke();
+  const X = v => padL + (v - cfg.x0) / (cfg.x1 - cfg.x0) * (W - padL - padR);
+  const Y = v => H - padB - (v - cfg.y0) / (cfg.y1 - cfg.y0) * (H - padT - padB);
+  const clampY = y => Math.max(padT, Math.min(H - padB, y));
+  const fmt = v => Math.abs(v) >= 10 ? v.toFixed(0) : v.toFixed(1);
+  ctx.font = "10.5px 'IBM Plex Mono', monospace"; ctx.fillStyle = COL.muted;
+  ctx.textAlign = "center";
+  ctx.fillText(cfg.xLabel, (padL + W - padR)/2, H - 8);
+  ctx.save(); ctx.translate(12, (padT + H - padB)/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText(cfg.yLabel, 0, 0); ctx.restore();
+  ctx.textAlign = "right";
+  [cfg.y0, (cfg.y0 + cfg.y1)/2, cfg.y1].forEach(v => ctx.fillText(fmt(v), padL - 6, Y(v) + 3));
+  (cfg.hlines || []).forEach(hl => {
+    ctx.strokeStyle = hl.col; ctx.setLineDash([5,4]); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(padL, Y(hl.y)); ctx.lineTo(W - padR, Y(hl.y)); ctx.stroke();
+    ctx.setLineDash([]);
+    if(hl.label){ ctx.fillStyle = hl.col; ctx.textAlign = "left"; ctx.fillText(hl.label, padL + 4, Y(hl.y) - 4); }
+  });
+  cfg.series.forEach(s => {
+    ctx.strokeStyle = s.col; ctx.lineWidth = 2; ctx.setLineDash(s.dash || []);
+    ctx.beginPath();
+    let started = false;
+    s.pts.forEach(p => {
+      if(p.x < cfg.x0 || p.x > cfg.x1) return;
+      const x = X(p.x), y = clampY(Y(p.y));
+      if(!started){ ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+    });
+    ctx.stroke(); ctx.setLineDash([]);
+  });
+  let lx = padL + 10;
+  ctx.font = "600 10.5px 'IBM Plex Mono', monospace"; ctx.textAlign = "left";
+  cfg.series.forEach(s => {
+    if(!s.name) return;
+    ctx.fillStyle = s.col;
+    ctx.fillText("— " + s.name, lx, padT + 10);
+    lx += ctx.measureText("— " + s.name).width + 18;
+  });
+}
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function onVisible(el, cb){
+  if(reduceMotion) return;
+  const io = new IntersectionObserver((es, o) => {
+    es.forEach(en => { if(en.isIntersecting){ cb(); o.disconnect(); } });
+  }, { threshold: 0.35 });
+  io.observe(el);
+}
+
+/* ---------- shared swerve geometry (WPILib frame: +x forward, +y left, CCW+) ---------- */
+const rot2 = (x, y, th) => [x*Math.cos(th) - y*Math.sin(th), x*Math.sin(th) + y*Math.cos(th)];
+const HALF = 0.3;
+const MODS = [[HALF, HALF], [HALF, -HALF], [-HALF, HALF], [-HALF, -HALF]];
+function swerveIK(vx, vy, om){
+  return MODS.map(([rx, ry]) => {
+    const mvx = vx - om*ry, mvy = vy + om*rx;
+    return { vx: mvx, vy: mvy, sp: Math.hypot(mvx, mvy), ang: Math.atan2(mvy, mvx) };
+  });
+}
+function swerveFK(vecs){
+  const vx = vecs.reduce((a, v) => a + v.vx, 0) / vecs.length;
+  const vy = vecs.reduce((a, v) => a + v.vy, 0) / vecs.length;
+  let num = 0, den = 0;
+  vecs.forEach((v, i) => {
+    const [rx, ry] = MODS[i];
+    num += rx*v.vy - ry*v.vx;
+    den += rx*rx + ry*ry;
+  });
+  return { vx, vy, om: num/den };
+}
+function mkView(ox, oy, ppm){
+  return { sx: x => ox + x*ppm, sy: y => oy - y*ppm, ppm };
+}
+function drawSwerveBot(ctx, vw, x, y, th, col, dashed){
+  const cs = [[HALF, HALF], [HALF, -HALF], [-HALF, -HALF], [-HALF, HALF]]
+    .map(([px, py]) => { const [wx, wy] = rot2(px, py, th); return [vw.sx(x + wx), vw.sy(y + wy)]; });
+  ctx.save();
+  if(dashed) ctx.setLineDash([5, 4]);
+  ctx.strokeStyle = col; ctx.lineWidth = 2;
+  ctx.fillStyle = dashed ? "transparent" : "rgba(22,40,59,.04)";
+  ctx.beginPath();
+  cs.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+  ctx.closePath();
+  if(!dashed) ctx.fill();
+  ctx.stroke();
+  ctx.setLineDash([]);
+  const [hx, hy] = rot2(HALF*1.45, 0, th);
+  arrow(ctx, vw.sx(x), vw.sy(y), vw.sx(x + hx), vw.sy(y + hy), col, 2);
+  ctx.restore();
+}
+function drawTrace(ctx, vw, pts, col, dashed){
+  if(pts.length < 2) return;
+  ctx.strokeStyle = col; ctx.lineWidth = 1.6;
+  ctx.setLineDash(dashed ? [5, 5] : [1, 5]);
+  ctx.beginPath();
+  let started = false;
+  pts.forEach(p => {
+    if(p === null){ started = false; return; }
+    const x = vw.sx(p[0]), y = vw.sy(p[1]);
+    if(!started){ ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+  });
+  ctx.stroke(); ctx.setLineDash([]);
+}
+
+/* An odometry pair: a true pose and an estimate fed by lying encoders.
+   Systematic per-module scale errors dominate — that's real-world drift. */
+function makeOdoBot(){
+  return {
+    tx: 0, ty: 0, tth: 0,      // truth
+    ex: 0, ey: 0, eth: 0,      // estimate
+    dist: 0,
+    scales: MODS.map(() => 1 + randn()*0.02),  // each wheel's diameter is a little wrong
+    step(vx, vy, om, dt, opts){
+      opts = opts || {};
+      const states = swerveIK(vx, vy, om);
+      // truth: unless pinned, the chassis really moves
+      if(!opts.pinned){
+        this.tth += om * dt;
+        const [wx, wy] = rot2(vx, vy, this.tth);
+        this.tx += wx * dt;
+        this.ty += wy * dt;
+      }
+      this.dist += Math.hypot(vx, vy) * dt;
+      // encoders: wheel motion × per-wheel lie + noise (wheels spin even when pinned)
+      const meas = states.map((s, i) => {
+        const spMeas = s.sp * this.scales[i] * (1 + randn()*0.01);
+        return { vx: spMeas*Math.cos(s.ang), vy: spMeas*Math.sin(s.ang) };
+      });
+      const vote = swerveFK(meas);        // step 1: the wheels vote
+      this.eth = this.tth;                // step 3's θ: the gyro (measures truth directly)
+      const [dx, dy] = rot2(vote.vx, vote.vy, this.eth); // step 2: rotate into field frame
+      this.ex += dx * dt;                 // step 3: accumulate
+      this.ey += dy * dt;
+    },
+    shove(mag){
+      const a = Math.random() * Math.PI * 2;
+      this.tx += mag * Math.cos(a);
+      this.ty += mag * Math.sin(a);
+    },
+    slip(mag){ // a scrub burst: the wheels moved, the robot didn't quite
+      const a = Math.random() * Math.PI * 2;
+      this.ex += mag * Math.cos(a);
+      this.ey += mag * Math.sin(a);
+    },
+    resetOdo(){ this.ex = this.tx; this.ey = this.ty; this.eth = this.tth; },
+    err(){ return Math.hypot(this.tx - this.ex, this.ty - this.ey); }
+  };
+}
+
+/* ============================================================
+   WIDGET 0 — the blind square
+============================================================ */
+(() => {
+  const HGT = 300, SIDE = 1.5, SPD = 0.75;
+  const { c, ctx, W } = setupCanvas("c0", HGT);
+  let bot, leg, legDist, tTrace, eTrace, hist, anim = null;
+  function reset(){
+    bot = makeOdoBot();
+    bot.tx = bot.ex = -SIDE/2; bot.ty = bot.ey = -SIDE/2;
+    leg = 0; legDist = 0; tTrace = []; eTrace = []; hist = [];
+  }
+  reset();
+  const LEGS = [[SPD, 0], [0, SPD], [-SPD, 0], [0, -SPD]]; // crab a square, heading fixed
+
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    const vw = mkView(w/2, HGT/2, Math.min(w/4.2, HGT/3.4));
+    // the intended square
+    ctx.strokeStyle = COL.grid; ctx.lineWidth = 1.5;
+    ctx.strokeRect(vw.sx(-SIDE/2), vw.sy(SIDE/2), SIDE*vw.ppm, SIDE*vw.ppm);
+    drawTrace(ctx, vw, tTrace, COL.ink, true);
+    drawTrace(ctx, vw, eTrace, COL.od, false);
+    drawSwerveBot(ctx, vw, bot.tx, bot.ty, bot.tth, COL.ink, true);
+    drawSwerveBot(ctx, vw, bot.ex, bot.ey, bot.eth, COL.od, false);
+    labelText(ctx, "- - truth", 14, 22, COL.ink);
+    labelText(ctx, "— odometry", 14, 40, COL.od);
+  }
+  const p0 = setupCanvas("c0p1", 180);
+  const w0det = document.getElementById("w0plots");
+  function drawPlots(){
+    if(!w0det.open || hist.length < 2 || !p0.W()) return;
+    const x1 = Math.max(8, bot.dist);
+    linePlot(p0.ctx, p0.W(), 180, {
+      x0: 0, x1, y0: 0, y1: 0.3, xLabel: "distance driven (m)", yLabel: "error (m)",
+      series: [{ pts: hist.map(h => ({x: h.d, y: h.e})), col: COL.od, name: "position error" }]
+    });
+  }
+  p0.c._redraw = drawPlots;
+  w0det.addEventListener("toggle", drawPlots);
+  c._redraw = () => { draw(); drawPlots(); };
+
+  function tick(){
+    const dt = 0.02;
+    const [vx, vy] = LEGS[leg];
+    bot.step(vx, vy, 0, dt);
+    legDist += SPD * dt;
+    if(legDist >= SIDE){
+      legDist = 0; leg = (leg + 1) % 4;
+      bot.slip(0.008 + Math.abs(randn())*0.014); // sharp direction changes scrub the wheels
+    }
+    tTrace.push([bot.tx, bot.ty]);
+    eTrace.push([bot.ex, bot.ey]);
+    if(tTrace.length > 1200){ tTrace = tTrace.filter((_, i) => i % 2 === 0); eTrace = eTrace.filter((_, i) => i % 2 === 0); }
+    hist.push({ d: bot.dist, e: bot.err() });
+    if(hist.length > 4000) hist = hist.filter((_, i) => i % 2 === 0);
+    document.getElementById("w0rerr").textContent = (bot.err()*100).toFixed(1) + " cm";
+    document.getElementById("w0rdist").textContent = bot.dist.toFixed(1) + " m";
+    draw(); drawPlots();
+    anim = requestAnimationFrame(tick);
+  }
+  document.getElementById("w0reset").addEventListener("click", () => {
+    cancelAnimationFrame(anim); anim = null;
+    reset(); draw();
+    anim = requestAnimationFrame(tick);
+  });
+  onVisible(c, () => { if(!anim) anim = requestAnimationFrame(tick); });
+  draw();
+})();
+
+/* ============================================================
+   WIDGET 1 — the honest ruler (one wheel, slip)
+============================================================ */
+(() => {
+  const HGT = 220, DIST = 3, SPD = 0.8, R = 0.14, STAMP = Math.PI/4;
+  const { c, ctx, W } = setupCanvas("c1", HGT);
+  const slipEl = document.getElementById("w1slip");
+  let x = 0, enc = 0, spin = 0, stamps = [], lastStamp = 0, anim = null;
+  function resetRun(){ x = 0; enc = 0; spin = 0; stamps = []; lastStamp = 0; }
+
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    const pad = 40, gy = HGT - 70;
+    const ppm = (w - 2*pad) / DIST;
+    const px = m => pad + m * ppm;
+    const wr = R * ppm; // wheel drawn at true ruler scale, so honest rolling *looks* honest
+    const slipNow = slipEl.value/100;
+    // ground + ruler
+    ctx.strokeStyle = COL.ink; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(pad - 14, gy); ctx.lineTo(w - pad + 14, gy); ctx.stroke();
+    ctx.font = "10.5px 'IBM Plex Mono', monospace"; ctx.fillStyle = COL.muted; ctx.textAlign = "center";
+    for(let m = 0; m <= DIST; m += 0.5){
+      ctx.strokeStyle = COL.line; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(px(m), gy); ctx.lineTo(px(m), gy + 8); ctx.stroke();
+      ctx.fillText(m.toFixed(1) + " m", px(m), gy + 22);
+    }
+    // tread marks: one stamp each 1/8 turn, laid wherever the rim actually touched
+    ctx.strokeStyle = COL.wh; ctx.lineWidth = 2;
+    stamps.forEach(sm => {
+      ctx.beginPath(); ctx.moveTo(px(sm), gy); ctx.lineTo(px(sm), gy - 7); ctx.stroke();
+    });
+    // skid streak while slipping
+    if(slipNow > 0 && x > 0.02 && x < DIST){
+      ctx.strokeStyle = COL.gy; ctx.lineWidth = 4; ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(px(Math.max(0, x - 0.1 - slipNow * 0.5)), gy - 2);
+      ctx.lineTo(px(x), gy - 2);
+      ctx.stroke();
+      ctx.lineCap = "butt";
+    }
+    // ghost: where the encoder believes the wheel is
+    const gx = px(Math.min(enc, DIST * 1.4));
+    ctx.strokeStyle = COL.od; ctx.setLineDash([4, 4]); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(gx, gy - wr, wr, 0, Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = COL.od; ctx.textAlign = "center"; ctx.font = "600 11px 'IBM Plex Mono', monospace";
+    ctx.fillText("encoder's belief", gx, gy - wr*2 - 12);
+    // the real wheel: four spokes + rim tread dots, so the spin rate is readable
+    const wx = px(x);
+    ctx.fillStyle = "#FBFDFE"; ctx.strokeStyle = COL.wh; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(wx, gy - wr, wr, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = COL.wh; ctx.lineWidth = 2.2;
+    for(let k = 0; k < 4; k++){
+      const a = spin + k*Math.PI/2;
+      ctx.beginPath();
+      ctx.moveTo(wx, gy - wr);
+      ctx.lineTo(wx + wr*0.8*Math.cos(a), gy - wr + wr*0.8*Math.sin(a));
+      ctx.stroke();
+    }
+    ctx.fillStyle = COL.wh;
+    for(let k = 0; k < 8; k++){
+      const a = spin + k*STAMP;
+      ctx.beginPath();
+      ctx.arc(wx + wr*0.9*Math.cos(a), gy - wr + wr*0.9*Math.sin(a), 2.2, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.beginPath(); ctx.arc(wx, gy - wr, 3.5, 0, Math.PI*2); ctx.fill();
+    labelText(ctx, "tread marks: one per ⅛ turn · even = grip, bunched = slip", pad, 24, COL.wh);
+  }
+  c._redraw = draw;
+
+  function tick(){
+    const dt = 0.02;
+    const slip = slipEl.value/100;
+    if(x < DIST){
+      x += SPD * dt;                       // ground truth
+      const wheelDist = SPD * dt * (1 + slip); // the wheel turns more than it grips
+      enc += wheelDist;
+      spin += wheelDist / R;
+      while(spin - lastStamp >= STAMP){    // a rim dot just touched down — stamp the ground
+        lastStamp += STAMP;
+        stamps.push(x);
+      }
+      update();
+      draw();
+      anim = requestAnimationFrame(tick);
+    } else {
+      anim = null;
+      if(!reduceMotion) setTimeout(() => { if(!anim){ resetRun(); anim = requestAnimationFrame(tick); } }, 2800);
+    }
+  }
+  function update(){
+    document.getElementById("w1renc").textContent = enc.toFixed(2) + " m";
+    document.getElementById("w1rtrue").textContent = x.toFixed(2) + " m";
+    document.getElementById("w1rerr").textContent = ((enc - x)*100).toFixed(0) + " cm";
+  }
+  slipEl.addEventListener("input", () => document.getElementById("w1slipOut").textContent = slipEl.value + "%");
+  document.getElementById("w1go").addEventListener("click", () => {
+    cancelAnimationFrame(anim); anim = null;
+    resetRun(); anim = requestAnimationFrame(tick);
+  });
+  onVisible(c, () => { if(!anim){ resetRun(); anim = requestAnimationFrame(tick); } });
+  draw(); update();
+})();
+
+/* ============================================================
+   WIDGET 2 — the protractor tax (miss = d·sin φ)
+============================================================ */
+(() => {
+  const HGT = 240, DIST = 4, SPD = 1.1;
+  const { c, ctx, W } = setupCanvas("c2", HGT);
+  const phiEl = document.getElementById("w2phi");
+  let d = 0, anim = null;
+
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    const pad = 46, oy = HGT/2 + 34;
+    const ppm = (w - 2*pad)/DIST;
+    const phi = phiEl.value * Math.PI/180;
+    // believed path: straight ahead
+    ctx.strokeStyle = COL.ink; ctx.setLineDash([5, 5]); ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.moveTo(pad, oy); ctx.lineTo(pad + DIST*ppm, oy); ctx.stroke();
+    ctx.setLineDash([]);
+    // actual path, rotated by φ
+    const ax = pad + d*Math.cos(phi)*ppm, ay = oy - d*Math.sin(phi)*ppm;
+    ctx.strokeStyle = COL.od; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.moveTo(pad, oy); ctx.lineTo(ax, ay); ctx.stroke();
+    // the miss bracket
+    const bx = pad + d*Math.cos(phi)*ppm;
+    ctx.strokeStyle = COL.gy; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(bx, oy); ctx.lineTo(bx, ay); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx - 5, oy); ctx.lineTo(bx + 5, oy); ctx.moveTo(bx - 5, ay); ctx.lineTo(bx + 5, ay); ctx.stroke();
+    // robot dot
+    ctx.fillStyle = COL.od;
+    ctx.beginPath(); ctx.arc(ax, ay, 7, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(ax, ay, 7, 0, Math.PI*2); ctx.stroke();
+    // labels last, haloed, so the moving dot never buries them
+    labelText(ctx, "where it thinks it's going", pad + 8, oy + 18, COL.muted, "11px 'IBM Plex Mono', monospace");
+    if(d > 0.4) labelText(ctx, "the miss", bx + 8, (oy + ay)/2 + 4, COL.gy);
+  }
+  c._redraw = draw;
+
+  function update(){
+    const phi = phiEl.value * Math.PI/180;
+    document.getElementById("w2rd").textContent = d.toFixed(1) + " m";
+    document.getElementById("w2rmiss").textContent = (Math.abs(d*Math.sin(phi))*100).toFixed(1) + " cm";
+    document.getElementById("w2rrate").textContent = (Math.abs(Math.sin(phi))*100).toFixed(1) + " cm/m";
+  }
+  function tick(){
+    const dt = 0.02;
+    d += SPD * dt;
+    if(d >= DIST){
+      update(); draw();
+      anim = null;
+      if(!reduceMotion) setTimeout(() => { if(!anim){ d = 0; anim = requestAnimationFrame(tick); } }, 2400);
+      return;
+    }
+    update(); draw();
+    anim = requestAnimationFrame(tick);
+  }
+  phiEl.addEventListener("input", () => {
+    document.getElementById("w2phiOut").textContent = phiEl.value + "°";
+    update(); draw();
+  });
+  onVisible(c, () => { if(!anim){ d = 0; anim = requestAnimationFrame(tick); } });
+  if(reduceMotion){ d = DIST; }
+  draw(); update();
+})();
+
+/* ============================================================
+   WIDGET 3 — truth vs bookkeeping (full swerve odometry)
+============================================================ */
+(() => {
+  const HGT = 340, FX = 4.2, FY = 2.1; // wall half-extents — room to actually drive
+  const { c, ctx, W } = setupCanvas("c3", HGT);
+  const vxEl = document.getElementById("w3vx");
+  const vyEl = document.getElementById("w3vy");
+  const omEl = document.getElementById("w3om");
+  let bot, tTrace, eTrace, hist, t = 0, anim = null;
+  function reset(){
+    bot = makeOdoBot();
+    tTrace = []; eTrace = []; hist = []; t = 0;
+  }
+  reset();
+
+  /* The defense bot: waits, charges the player's TRUE position, shoves on
+     contact (the wheels never see the shove), then retreats home. */
+  const defBtn = document.getElementById("w3def");
+  const defOn = () => defBtn.getAttribute("aria-pressed") === "true";
+  let def = null;
+  function resetDef(){
+    def = { x: FX - 0.6, y: FY - 0.6, th: Math.PI, state: "wait", timer: 1.8, hx: FX - 0.6, hy: FY - 0.6 };
+  }
+  resetDef();
+  function stepDef(dt){
+    if(def.state === "wait"){
+      def.timer -= dt;
+      if(def.timer <= 0) def.state = "charge";
+    } else if(def.state === "charge"){
+      const dx = bot.tx - def.x, dy = bot.ty - def.y, d = Math.hypot(dx, dy);
+      if(d > 1e-6){
+        def.th = Math.atan2(dy, dx);
+        def.x += dx/d * 2.1 * dt;
+        def.y += dy/d * 2.1 * dt;
+      }
+      if(d < 0.62){
+        const mag = 0.18 + Math.random()*0.17;
+        bot.tx += dx/d * mag;   // truth gets moved…
+        bot.ty += dy/d * mag;   // …and the encoders never hear about it
+        def.x -= dx/d * 0.25;
+        def.y -= dy/d * 0.25;
+        def.state = "retreat";
+      }
+    } else {
+      const dx = def.hx - def.x, dy = def.hy - def.y, d = Math.hypot(dx, dy);
+      if(d < 0.1){
+        def.state = "wait";
+        def.timer = 1.6 + Math.random()*2.4;
+      } else {
+        def.th = Math.atan2(dy, dx);
+        def.x += dx/d * 1.6 * dt;
+        def.y += dy/d * 1.6 * dt;
+      }
+    }
+    def.x = Math.max(-FX, Math.min(FX, def.x));
+    def.y = Math.max(-FY, Math.min(FY, def.y));
+  }
+  defBtn.addEventListener("click", () => {
+    const on = defBtn.getAttribute("aria-pressed") !== "true";
+    defBtn.setAttribute("aria-pressed", on);
+    defBtn.textContent = "defense bot: " + (on ? "on" : "off");
+    resetDef();
+  });
+
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    const vw = mkView(w/2, HGT/2, Math.min(w/(2*FX + 0.9), HGT/(2*FY + 0.9)));
+    // the walls
+    ctx.strokeStyle = COL.muted; ctx.lineWidth = 2.5;
+    ctx.strokeRect(vw.sx(-FX - 0.32), vw.sy(FY + 0.32), (2*FX + 0.64)*vw.ppm, (2*FY + 0.64)*vw.ppm);
+    drawTrace(ctx, vw, tTrace, COL.ink, true);
+    drawTrace(ctx, vw, eTrace, COL.od, false);
+    if(defOn()){
+      drawSwerveBot(ctx, vw, def.x, def.y, def.th, COL.gy, false);
+      labelText(ctx, "— defense", 14, 58, COL.gy);
+    }
+    drawSwerveBot(ctx, vw, bot.tx, bot.ty, bot.tth, COL.ink, true);
+    // pin the runaway estimate to the view edge so it can never leave the screen
+    const xVis = (w/2)/vw.ppm - 0.4, yVis = (HGT/2)/vw.ppm - 0.4;
+    const ex = Math.max(-xVis, Math.min(xVis, bot.ex));
+    const ey = Math.max(-yVis, Math.min(yVis, bot.ey));
+    drawSwerveBot(ctx, vw, ex, ey, bot.eth, COL.od, false);
+    if(ex !== bot.ex || ey !== bot.ey){
+      const a = Math.atan2(bot.ey - ey, bot.ex - ex);
+      arrow(ctx, vw.sx(ex) + 20*Math.cos(a), vw.sy(ey) - 20*Math.sin(a),
+            vw.sx(ex) + 46*Math.cos(a), vw.sy(ey) - 46*Math.sin(a), COL.od, 2.4);
+      labelText(ctx, "estimate: off the map — it kept believing the wheels", 14, 76, COL.od);
+    }
+    labelText(ctx, "- - truth", 14, 22, COL.ink);
+    labelText(ctx, "— odometry", 14, 40, COL.od);
+    // keycap hint, bottom-right; pressed keys light up
+    const caps = [["q","Q"],["w","W"],["e","E"],["a","A"],["s","S"],["d","D"]];
+    const kw = 24, gap = 5, bx0 = w - 3*kw - 2*gap - 14, by0 = HGT - 2*kw - gap - 12;
+    caps.forEach(([k, L], i) => {
+      const cxp = bx0 + (i % 3) * (kw + gap), cyp = by0 + Math.floor(i / 3) * (kw + gap);
+      ctx.fillStyle = keys.has(k) ? COL.od : "rgba(251,253,254,.92)";
+      ctx.strokeStyle = keys.has(k) ? COL.od : COL.line;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.roundRect(cxp, cyp, kw, kw, 5); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = keys.has(k) ? "#fff" : COL.muted;
+      ctx.font = "600 12px 'IBM Plex Mono', monospace"; ctx.textAlign = "center";
+      ctx.fillText(L, cxp + kw/2, cyp + kw/2 + 4);
+    });
+  }
+  const p3 = setupCanvas("c3p1", 180);
+  const w3det = document.getElementById("w3plots");
+  function drawPlots(){
+    if(!w3det.open || hist.length < 2 || !p3.W()) return;
+    const x1 = Math.max(12, t);
+    linePlot(p3.ctx, p3.W(), 180, {
+      x0: 0, x1, y0: 0, y1: 0.6, xLabel: "time (s)", yLabel: "error (m)",
+      series: [{ pts: hist.map(h => ({x: h.t, y: h.e})), col: COL.od, name: "position error" }]
+    });
+  }
+  p3.c._redraw = drawPlots;
+  w3det.addEventListener("toggle", drawPlots);
+  c._redraw = () => { draw(); drawPlots(); };
+
+  function tick(){
+    const dt = 0.02;
+    const vx = vxEl.value/100, vy = vyEl.value/100, om = omEl.value/100;
+    // pinned = commanded into a wall it's already touching (wheels scrub in place)
+    const [wvx, wvy] = rot2(vx, vy, bot.tth);
+    const pinned =
+      (bot.tx >= FX && wvx > 0) || (bot.tx <= -FX && wvx < 0) ||
+      (bot.ty >= FY && wvy > 0) || (bot.ty <= -FY && wvy < 0);
+    bot.step(vx, vy, om, dt, { pinned });
+    if(Math.random() < 0.008 && Math.hypot(vx, vy) > 0.1) bot.slip(0.004 + Math.abs(randn())*0.008); // carpet micro-slips
+    bot.tx = Math.max(-FX, Math.min(FX, bot.tx));
+    bot.ty = Math.max(-FY, Math.min(FY, bot.ty));
+    if(defOn()){
+      stepDef(dt);
+      bot.tx = Math.max(-FX, Math.min(FX, bot.tx)); // a shove can't push the truth through a wall
+      bot.ty = Math.max(-FY, Math.min(FY, bot.ty));
+    }
+    t += dt;
+    tTrace.push([bot.tx, bot.ty]);
+    eTrace.push([bot.ex, bot.ey]);
+    if(tTrace.length > 1200){ tTrace = tTrace.filter((_, i) => i % 2 === 0); eTrace = eTrace.filter((_, i) => i % 2 === 0); }
+    hist.push({ t, e: bot.err() });
+    if(hist.length > 4000) hist = hist.filter((_, i) => i % 2 === 0);
+    document.getElementById("w3rerr").textContent = (bot.err()*100).toFixed(1) + " cm";
+    document.getElementById("w3rtrue").textContent = bot.tx.toFixed(2) + ", " + bot.ty.toFixed(2);
+    document.getElementById("w3rest").textContent = bot.ex.toFixed(2) + ", " + bot.ey.toFixed(2);
+    draw(); drawPlots();
+    anim = requestAnimationFrame(tick);
+  }
+  ["w3vx", "w3vy", "w3om"].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener("input", () => document.getElementById(id + "Out").textContent = (el.value/100).toFixed(1));
+  });
+  document.getElementById("w3bump").addEventListener("click", () => { bot.shove(0.22 + Math.random()*0.14); });
+  document.getElementById("w3resetOdo").addEventListener("click", () => { bot.resetOdo(); eTrace.push(null); });
+  document.getElementById("w3reset").addEventListener("click", () => {
+    cancelAnimationFrame(anim); anim = null;
+    reset(); resetDef(); draw();
+    anim = requestAnimationFrame(tick);
+  });
+
+  // WASD + Q/E drive the same sliders, so both control paths stay in sync
+  const keys = new Set();
+  let inView = false;
+  new IntersectionObserver(es => es.forEach(en => { inView = en.isIntersecting; }), { threshold: 0.2 }).observe(c);
+  function syncOuts(){
+    ["w3vx", "w3vy", "w3om"].forEach(id => {
+      document.getElementById(id + "Out").textContent = (document.getElementById(id).value/100).toFixed(1);
+    });
+  }
+  function applyKeys(){
+    vxEl.value = ((keys.has("w") ? 1 : 0) - (keys.has("s") ? 1 : 0)) * 150;
+    vyEl.value = ((keys.has("a") ? 1 : 0) - (keys.has("d") ? 1 : 0)) * 150; // +y is the robot's left
+    omEl.value = ((keys.has("q") ? 1 : 0) - (keys.has("e") ? 1 : 0)) * 200;
+    syncOuts();
+  }
+  window.addEventListener("keydown", e => {
+    const k = e.key.toLowerCase();
+    if(!inView || e.repeat || k.length !== 1 || !"wasdqe".includes(k) || e.ctrlKey || e.metaKey || e.altKey) return;
+    keys.add(k); applyKeys();
+  });
+  window.addEventListener("keyup", e => {
+    const k = e.key.toLowerCase();
+    if(keys.has(k)){ keys.delete(k); applyKeys(); }
+  });
+
+  onVisible(c, () => { if(!anim) anim = requestAnimationFrame(tick); });
+  draw();
+})();
+
+})();
+</script>
+</body>
+</html>

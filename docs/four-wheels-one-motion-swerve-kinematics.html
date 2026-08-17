@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Four Wheels, One Motion — Kinematics &amp; Swerve</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F7F9;
+  --grid:#DCE6EC;
+  --panel:#FFFFFF;
+  --ink:#16283B;
+  --muted:#5B7186;
+  --line:#C7D5DE;
+  --ch:#7A4FD0;      /* chassis motion / translation: violet */
+  --rot:#E07B1F;     /* rotation: orange */
+  --mod:#0B8F6B;     /* modules / wheel states: green */
+  --ch-soft:#EFE8FB;
+  --rot-soft:#FBEEDD;
+  --mod-soft:#DFF3EC;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+
+body{
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    var(--paper);
+  background-size:28px 28px, 28px 28px, auto;
+  color:var(--ink);
+  font-family:"Public Sans", system-ui, -apple-system, sans-serif;
+  font-size:17px;
+  line-height:1.65;
+}
+.wrap{max-width:860px;margin:0 auto;padding:0 20px 96px}
+
+/* ---------- hero ---------- */
+header{padding:72px 0 40px;position:relative}
+a.home{
+  display:inline-block;margin-bottom:22px;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink);text-decoration:none;
+  background:var(--panel);border:1.5px solid var(--line);
+  border-radius:999px;padding:8px 16px;
+  transition:border-color .15s ease, background .15s ease;
+}
+a.home:hover{border-color:var(--ch);background:var(--ch-soft);color:var(--ink)}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:14px;
+}
+h1{
+  font-family:"Space Grotesk",sans-serif;font-weight:700;
+  font-size:clamp(38px,7vw,62px);line-height:1.05;letter-spacing:-0.02em;
+}
+h1 .q{color:var(--ch)}
+.sub{margin-top:18px;max-width:56ch;color:var(--muted);font-size:19px}
+.legend{
+  display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:26px;
+  font-family:"IBM Plex Mono",monospace;font-size:13px;
+}
+.legend span{display:flex;align-items:center;gap:8px}
+.chip{width:22px;height:0;border-top:3px solid var(--ink);display:inline-block}
+.chip.dashed{border-top-style:dashed}
+
+/* hero swerve bot */
+.hero-bot{position:absolute;right:8px;top:96px;width:112px;height:112px;opacity:.95}
+.hero-bot .spinner{transform-origin:56px 56px;animation:spin 9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){ .hero-bot .spinner{animation:none} }
+@media (max-width:760px){ .hero-bot{display:none} }
+
+/* ---------- sections ---------- */
+section{margin-top:64px}
+h2{
+  font-family:"Space Grotesk",sans-serif;font-weight:700;
+  font-size:clamp(26px,4.4vw,34px);letter-spacing:-0.015em;line-height:1.15;
+}
+.step{
+  font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted);
+  letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;
+}
+section p{margin-top:16px;max-width:64ch}
+strong{font-weight:600}
+.ch-t{color:var(--ch);font-weight:600}
+.rot-t{color:var(--rot);font-weight:600}
+.mod-t{color:var(--mod);font-weight:600}
+a{color:var(--ch);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:#6740B2}
+
+.callout{
+  margin-top:22px;padding:16px 18px;background:var(--panel);
+  border:1px solid var(--line);border-left:4px solid var(--ch);
+  border-radius:8px;max-width:64ch;
+}
+.callout.orange{border-left-color:var(--rot)}
+.callout.green{border-left-color:var(--mod)}
+
+/* ---------- equations ---------- */
+.eq{
+  margin-top:18px;padding:16px 20px;background:var(--panel);
+  border:1px solid var(--line);border-radius:8px;max-width:64ch;
+  font-family:"IBM Plex Mono",monospace;font-size:15px;
+}
+.eq .line{padding:3px 0;letter-spacing:.01em}
+.eq .line b{color:var(--ch);font-weight:600;margin-right:6px}
+.eq .who{
+  display:block;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);
+  font-size:13.5px;color:var(--muted);font-family:"Public Sans",sans-serif;
+  white-space:normal;line-height:1.7;
+}
+.eq .who .def{display:block;padding:1.5px 0}
+.eq code{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink);
+  background:#EEF3F6;border:1px solid var(--line);border-radius:4px;padding:1px 6px;
+}
+.eq.glossary .line{font-family:"Public Sans",sans-serif;font-size:14.5px;color:var(--muted);line-height:1.9}
+.eq .who .note{display:block;margin-top:8px}
+.eq sub,.eq sup{font-size:11px}
+
+/* ---------- static block diagrams ---------- */
+.diagram{
+  margin-top:22px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 18px 8px;
+}
+.diagram svg{width:100%;height:auto;display:block}
+.diagram .cap{
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted);
+  padding:8px 4px 8px;line-height:1.6;
+}
+.bd-block{fill:#FBFDFE;stroke:var(--ink);stroke-width:1.6}
+.bd-block.chc{stroke:var(--ch)}
+.bd-block.modc{stroke:var(--mod)}
+.bd-wire{stroke:var(--ink);stroke-width:1.6;fill:none}
+.bd-wire.chc{stroke:var(--ch)}
+.bd-wire.rotc{stroke:var(--rot)}
+.bd-wire.modc{stroke:var(--mod)}
+.bd-label{font-family:"Space Grotesk",sans-serif;font-size:13.5px;font-weight:500;fill:var(--ink)}
+.bd-sig{font-family:"IBM Plex Mono",monospace;font-size:11.5px;fill:var(--muted)}
+.bd-sig.chc{fill:var(--ch)} .bd-sig.rotc{fill:var(--rot)} .bd-sig.modc{fill:var(--mod)}
+.pulse{fill:var(--ink)}
+.pulse.chc{fill:var(--ch)} .pulse.rotc{fill:var(--rot)} .pulse.modc{fill:var(--mod)}
+@media (prefers-reduced-motion: reduce){ .pulse{display:none} }
+
+/* ---------- widget shell ---------- */
+.widget{
+  margin-top:26px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:0 1px 0 rgba(22,40,59,.05), 0 10px 30px -18px rgba(22,40,59,.25);
+  overflow:hidden;
+}
+.widget-head{
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  padding:14px 18px;border-bottom:1px solid var(--line);
+  font-family:"IBM Plex Mono",monospace;font-size:13px;
+}
+.widget-head .name{font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.widget-head .tag{color:var(--muted)}
+.widget-body{padding:18px}
+canvas{display:block;width:100%;border:1px solid var(--line);border-radius:8px;background:#FBFDFE}
+
+.controls{display:flex;flex-wrap:wrap;gap:14px 26px;margin-top:16px;align-items:flex-end}
+.control{min-width:170px;flex:1}
+.control label{
+  display:flex;justify-content:space-between;
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted);
+  margin-bottom:6px;
+}
+.control label output{color:var(--ink);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--ink);cursor:pointer}
+button{
+  font-family:"Space Grotesk",sans-serif;font-weight:500;font-size:15px;
+  background:var(--ink);color:#fff;border:none;border-radius:8px;
+  padding:10px 18px;cursor:pointer;
+}
+button:hover{background:#233C57}
+button:focus-visible, input:focus-visible{outline:3px solid var(--ch);outline-offset:2px}
+button.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+button.ghost:hover{background:rgba(22,40,59,.06)}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap}
+
+.toggles{display:flex;flex-wrap:wrap;gap:8px}
+.toggle{
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;
+  border:1.5px solid var(--line);background:#fff;color:var(--muted);
+  border-radius:999px;padding:7px 14px;cursor:pointer;
+}
+.toggle[aria-pressed=true]{color:#fff}
+.toggle.t-field[aria-pressed=true]{background:var(--ch);border-color:var(--ch)}
+
+.readouts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.readout{
+  flex:1;min-width:130px;padding:10px 14px;border-radius:8px;
+  border:1px solid var(--line);background:#FBFDFE;
+  font-family:"IBM Plex Mono",monospace;
+}
+.readout .k{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout .v{font-size:20px;font-weight:600;margin-top:2px}
+.readout.r-ch{background:var(--ch-soft)} .readout.r-ch .v{color:var(--ch)}
+.readout.r-rot{background:var(--rot-soft)} .readout.r-rot .v{color:var(--rot)}
+.readout.r-mod{background:var(--mod-soft)} .readout.r-mod .v{color:var(--mod)}
+
+.hint{margin-top:12px;font-size:14.5px;color:var(--muted);max-width:64ch}
+
+/* ---------- collapsible plots ---------- */
+details.plots{
+  margin-top:14px;border:1px solid var(--line);border-radius:8px;
+  background:#FBFDFE;overflow:hidden;
+}
+details.plots summary{
+  cursor:pointer;padding:11px 14px;list-style:none;
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;
+  color:var(--muted);display:flex;align-items:center;gap:9px;user-select:none;
+}
+details.plots summary::-webkit-details-marker{display:none}
+details.plots summary::before{content:"▸";color:var(--ch);transition:transform .18s}
+details[open].plots summary::before{transform:rotate(90deg)}
+@media (prefers-reduced-motion:reduce){details.plots summary::before{transition:none}}
+details.plots summary:hover{color:var(--ink)}
+details.plots .plotbody{padding:0 14px 14px}
+details.plots canvas{background:#fff}
+details.plots .cap{
+  margin-top:10px;font-size:13.5px;color:var(--muted);line-height:1.55;
+  font-family:"Public Sans",sans-serif;
+}
+a.next{
+  display:block;margin-top:56px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px 24px;color:inherit;text-decoration:none;
+  transition:border-color .15s ease, background .15s ease;
+}
+a.next:hover{border-color:var(--ch);background:var(--ch-soft)}
+a.next .k{
+  display:block;font-family:"IBM Plex Mono",monospace;font-size:12px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;
+}
+a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15rem}
+.footer{
+  margin-top:80px;padding-top:24px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:14.5px;font-family:"IBM Plex Mono",monospace;
+}
+@media (max-width:560px){ body{font-size:16px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <a class="home" href="index.html">← All lessons</a>
+  <svg class="hero-bot" viewBox="0 0 112 112" aria-hidden="true">
+    <g class="spinner">
+      <rect x="24" y="24" width="64" height="64" rx="10" fill="none" stroke="#16283B" stroke-width="4"/>
+      <rect x="16" y="16" width="18" height="8" rx="4" fill="#0B8F6B" transform="rotate(45 25 20)"/>
+      <rect x="78" y="16" width="18" height="8" rx="4" fill="#0B8F6B" transform="rotate(-45 87 20)"/>
+      <rect x="16" y="88" width="18" height="8" rx="4" fill="#0B8F6B" transform="rotate(-45 25 92)"/>
+      <rect x="78" y="88" width="18" height="8" rx="4" fill="#0B8F6B" transform="rotate(45 87 92)"/>
+      <circle cx="56" cy="56" r="7" fill="#7A4FD0"/>
+    </g>
+  </svg>
+  <div class="eyebrow">Kinematics · chassis speeds · swerve · WPILib</div>
+  <h1>Four wheels,<br>one <span class="q">motion</span>.</h1>
+  <p class="sub">Before you can control a mechanism — an arm, a drivetrain — you need a translator between two languages: "the business end should do <em>this</em>" and "each joint should do <em>this</em>." That translator is called kinematics — and swerve drive is where it gets beautiful.</p>
+  <div class="legend">
+    <span><span class="chip" style="border-color:var(--ch)"></span>chassis motion (vx, vy)</span>
+    <span><span class="chip" style="border-color:var(--rot)"></span>rotation (ω)</span>
+    <span><span class="chip" style="border-color:var(--mod)"></span>wheels &amp; modules</span>
+    <span><span class="chip" style="border-color:var(--ink)"></span>the robot</span>
+  </div>
+</header>
+
+<!-- ============ 1. the dictionary ============ -->
+<section>
+  <div class="step">Part 1 / The dictionary problem</div>
+  <h2>Two languages, one mechanism</h2>
+  <p>You think in terms of the <span class="ch-t">business end</span>: "put the claw on the game piece", "drive forward at 2 m/s while spinning". Your motors only understand <span class="mod-t">joint commands</span>: this joint at this angle, this wheel at this speed. A <strong>kinematic model</strong> is the dictionary between the two languages — pure geometry, no forces, no motors, no physics of pushing. (How hard to push is the business of <a href="close-the-loop-pid-control.html">feedback</a> and <a href="push-first-feedforward-control.html">feedforward</a>. Kinematics only decides <em>where things should point and how far they should move</em>.)</p>
+  <p>Roboticists call the business end the <strong>end effector</strong> — the hand of an arm, the chassis of a drivetrain: the one thing you actually care about placing. The dictionary reads in both directions, and the two directions have completely different personalities. <strong>Forward kinematics</strong> goes joints → end effector: take the change each joint made and <em>stack them, one on top of the next</em>, until the overall result falls out. It always returns exactly one answer. <strong>Inverse kinematics</strong> goes the other way: it cares only about where the end effector should be, and works backwards to joint positions that would put it there — of which there may be several, or none. It doesn't hand you <em>the</em> answer; it hands you <strong>possibilities</strong>:</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 760 200" role="img" aria-label="Two boxes: joints and wheels on the left, end effector on the right; a forward-kinematics arrow runs left to right labeled stack every change, and an inverse-kinematics arrow runs right to left labeled find the possibilities">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#16283B"/>
+        </marker>
+      </defs>
+      <rect x="30" y="60" width="230" height="80" rx="8" class="bd-block modc"/>
+      <text x="145" y="92" text-anchor="middle" class="bd-label">Joints &amp; wheels</text>
+      <text x="145" y="112" text-anchor="middle" class="bd-sig modc">what you command</text>
+      <rect x="500" y="60" width="230" height="80" rx="8" class="bd-block chc"/>
+      <text x="615" y="92" text-anchor="middle" class="bd-label">End effector</text>
+      <text x="615" y="112" text-anchor="middle" class="bd-sig chc">the hand, the chassis</text>
+      <line x1="264" y1="82" x2="492" y2="82" class="bd-wire chc" marker-end="url(#arr)"/>
+      <text x="378" y="70" text-anchor="middle" class="bd-sig chc">forward — stack every change</text>
+      <line x1="496" y1="118" x2="268" y2="118" class="bd-wire modc" marker-end="url(#arr)"/>
+      <text x="378" y="140" text-anchor="middle" class="bd-sig modc">inverse — find the possibilities</text>
+      <circle class="pulse chc" r="3.5"><animateMotion dur="3.4s" repeatCount="indefinite" path="M264,82 L488,82"/></circle>
+      <circle class="pulse modc" r="3.5"><animateMotion dur="3.4s" begin="1.7s" repeatCount="indefinite" path="M496,118 L272,118"/></circle>
+    </svg>
+    <div class="cap"><strong>The whole lesson in one picture.</strong> Forward kinematics adds up what the joints did — always exactly one answer. Inverse kinematics proposes joint positions for a desired end effector — 0, 1, or many possibilities. Everything from here on is filling in the two arrows — first on an arm, then on a swerve drive.</div>
+  </div>
+
+</section>
+
+<!-- ============ 2. arm forward kinematics ============ -->
+<section>
+  <div class="step">Part 2 / Forward kinematics</div>
+  <h2>Stack the changes, find the hand</h2>
+  <p>Start with the friendliest mechanism that has joints: a two-joint arm. A <strong>shoulder</strong> carries an upper arm of length L<sub>1</sub>; an <strong>elbow</strong> at its end carries a forearm of length L<sub>2</sub>. Where does the hand end up? Walk the chain and stack each joint's change: the shoulder swings everything downstream of it, so take one step of length L<sub>1</sub> in the shoulder's direction. The elbow adds its own bend <em>on top of whatever the shoulder already did</em>, so take a second step of length L<sub>2</sub> in the combined direction. Tip to tail — the hand is wherever the stack ends:</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 760 300" role="img" aria-label="A two-joint arm drawn with its two contribution vectors added tip to tail: the shoulder's step, then the elbow's step stacked on it, ending at the hand">
+      <circle cx="150" cy="240" r="270" fill="none" stroke="#DCE6EC" stroke-width="1.4" stroke-dasharray="4,6"/>
+      <line x1="150" y1="240" x2="246" y2="125" stroke="rgba(22,40,59,.16)" stroke-width="11" stroke-linecap="round"/>
+      <line x1="246" y1="125" x2="359" y2="166" stroke="rgba(22,40,59,.16)" stroke-width="11" stroke-linecap="round"/>
+      <line x1="150" y1="240" x2="240" y2="132" class="bd-wire chc" stroke-width="2.6" marker-end="url(#arr)"/>
+      <line x1="246" y1="125" x2="352" y2="163" class="bd-wire rotc" stroke-width="2.6" marker-end="url(#arr)"/>
+      <line x1="150" y1="240" x2="352" y2="170" class="bd-wire modc" stroke-width="2.2" stroke-dasharray="6,5" marker-end="url(#arr)"/>
+      <circle cx="150" cy="240" r="6" fill="#16283B"/>
+      <circle cx="246" cy="125" r="5" fill="#16283B"/>
+      <circle cx="359" cy="166" r="7" fill="#0B8F6B"/>
+      <text x="118" y="264" class="bd-sig">base</text>
+      <text x="16" y="150" class="bd-sig chc">1 · the shoulder's change:</text>
+      <text x="16" y="166" class="bd-sig chc">walk L1 at θ1</text>
+      <text x="400" y="108" class="bd-sig rotc">2 · the elbow's change, stacked on top:</text>
+      <text x="400" y="124" class="bd-sig rotc">walk L2 at θ1 + θ2</text>
+      <text x="432" y="204" class="bd-sig modc">= the hand: every change, added up</text>
+      <text x="430" y="286" class="bd-sig">reach: the circle the stack can touch</text>
+      <circle class="pulse chc" r="3.5"><animateMotion dur="3.8s" repeatCount="indefinite" path="M150,240 L246,125"/></circle>
+      <circle class="pulse rotc" r="3.5"><animateMotion dur="3.8s" begin="1.3s" repeatCount="indefinite" path="M246,125 L359,166"/></circle>
+      <circle class="pulse modc" r="3.5"><animateMotion dur="3.8s" begin="2.4s" repeatCount="indefinite" path="M150,240 L359,166"/></circle>
+    </svg>
+    <div class="cap"><strong>Forward kinematics is vector addition.</strong> Each joint contributes one step; the steps stack tip to tail; the end effector is the total. The recipe scales: a 20-joint snake arm is the same walk, 20 steps long — and however many joints, the stack lands in exactly one place.</div>
+  </div>
+
+  <div class="eq">
+    <div class="line"><b>forward</b> x = L<sub>1</sub>·cos(θ<sub>1</sub>) + L<sub>2</sub>·cos(θ<sub>1</sub> + θ<sub>2</sub>)</div>
+    <div class="line">        y = L<sub>1</sub>·sin(θ<sub>1</sub>) + L<sub>2</sub>·sin(θ<sub>1</sub> + θ<sub>2</sub>)</div>
+    <span class="who"><span class="def"><code>x</code>, <code>y</code> — where the hand (end effector) ends up, measured from the shoulder base</span><span class="def"><code>θ<sub>1</sub></code> — the shoulder's angle</span><span class="def"><code>θ<sub>2</sub></code> — the elbow's angle, measured relative to the upper arm — each joint only knows its own local bend</span><span class="def"><code>L<sub>1</sub></code>, <code>L<sub>2</sub></code> — the two link lengths (m)</span><span class="def"><code>θ<sub>1</sub> + θ<sub>2</sub></code> — the stacking, written down: the forearm's direction is the shoulder's change plus the elbow's</span><span class="note">First term: the shoulder's step. Second term: the elbow's step, aimed by <em>both</em> joints because it rides downstream of both. Feed in any (θ<sub>1</sub>, θ<sub>2</sub>) and exactly one (x, y) falls out — forward kinematics never shrugs.</span></span>
+  </div>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 00 — The stacking bench</span><span class="tag">joints in, hand out</span></div>
+    <div class="widget-body">
+      <canvas id="cA" height="300"></canvas>
+      <div class="controls">
+        <div class="control">
+          <label><span>Shoulder θ1 (°)</span><output id="wAt1Out">40°</output></label>
+          <input type="range" id="wAt1" min="-20" max="200" value="40" aria-label="Shoulder angle in degrees">
+        </div>
+        <div class="control">
+          <label><span>Elbow θ2 (°)</span><output id="wAt2Out">60°</output></label>
+          <input type="range" id="wAt2" min="-150" max="150" value="60" aria-label="Elbow angle in degrees">
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout r-ch"><div class="k">Hand x</div><div class="v" id="wArx">—</div></div>
+        <div class="readout r-ch"><div class="k">Hand y</div><div class="v" id="wAry">—</div></div>
+        <div class="readout"><div class="k">Answers</div><div class="v">always 1</div></div>
+      </div>
+      <p class="hint">Experiments: <strong>(1)</strong> θ2 = 0 — the arm is one straight stick and the hand sits at exactly L1 + L2 = 1.00 m from the base; check it against the readouts. <strong>(2)</strong> Hold θ2 and sweep θ1 — the whole stack swings together, because everything downstream of a joint inherits its change. <strong>(3)</strong> θ1 = 90°, θ2 = −90° — shoulder straight up, elbow folded flat: the readouts should land at x = 0.45 (that's L2) and y = 0.55 (that's L1). The equation, verified by hand.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. arm inverse kinematics ============ -->
+<section>
+  <div class="step">Part 3 / Inverse kinematics</div>
+  <h2>The hand is the boss; the joints negotiate</h2>
+  <p>Now flip the question, because this is the direction robot code usually needs: <em>the game piece is at (x, y) — what should the joints do?</em> Inverse kinematics doesn't care how the chain gets there. It cares only about the end effector, and works backwards from it, computing <strong>possibilities</strong> for the joint positions. Plural, on purpose: most reachable points can be touched by <em>two</em> different elbow shapes — elbow-up and elbow-down — a point at exactly full stretch by one, and a point beyond the arm's reach by none:</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 760 300" role="img" aria-label="One target point reached by two different arm configurations, elbow-down solid and elbow-up dashed, with the arm's reach circle and an unreachable point marked outside it">
+      <circle cx="240" cy="240" r="270" fill="none" stroke="#DCE6EC" stroke-width="1.4" stroke-dasharray="4,6"/>
+      <line x1="240" y1="240" x2="390" y2="233" stroke="rgba(22,40,59,.5)" stroke-width="9" stroke-linecap="round"/>
+      <line x1="390" y1="233" x2="430" y2="120" stroke="rgba(22,40,59,.5)" stroke-width="9" stroke-linecap="round"/>
+      <line x1="240" y1="240" x2="311" y2="108" stroke="#5B7186" stroke-width="6" stroke-linecap="round" stroke-dasharray="2,9"/>
+      <line x1="311" y1="108" x2="430" y2="120" stroke="#5B7186" stroke-width="6" stroke-linecap="round" stroke-dasharray="2,9"/>
+      <circle cx="240" cy="240" r="6" fill="#16283B"/>
+      <circle cx="390" cy="233" r="5" fill="#16283B"/>
+      <circle cx="311" cy="108" r="5" fill="#5B7186"/>
+      <circle cx="430" cy="120" r="12" fill="none" stroke="#7A4FD0" stroke-width="2.4" stroke-dasharray="5,4"/>
+      <circle cx="430" cy="120" r="4" fill="#7A4FD0"/>
+      <text x="452" y="112" class="bd-sig spc" style="fill:#7A4FD0">the target — all IK cares about</text>
+      <text x="452" y="128" class="bd-sig">…reached two different ways</text>
+      <text x="330" y="268" class="bd-sig">possibility 1 — elbow down</text>
+      <text x="150" y="92" class="bd-sig">possibility 2 — elbow up</text>
+      <circle cx="680" cy="60" r="4" fill="#E07B1F"/>
+      <text x="576" y="42" class="bd-sig rotc">out here: zero possibilities</text>
+    </svg>
+    <div class="cap"><strong>Inverse kinematics returns a menu, not an answer.</strong> One target, two joint stories that both check out under forward kinematics. The math can't choose between them — your code does, using joint limits, obstacles, or least travel from where the arm is now.</div>
+  </div>
+
+  <div class="eq">
+    <div class="line"><b>inverse</b> cos(θ<sub>2</sub>) = (x² + y² − L<sub>1</sub>² − L<sub>2</sub>²) / (2·L<sub>1</sub>·L<sub>2</sub>)</div>
+    <div class="line">θ<sub>2</sub> = ±acos(…)&nbsp;&nbsp;&nbsp;θ<sub>1</sub> = atan2(y, x) − atan2(L<sub>2</sub>·sin θ<sub>2</sub>, L<sub>1</sub> + L<sub>2</sub>·cos θ<sub>2</sub>)</div>
+    <span class="who"><span class="def"><code>x</code>, <code>y</code> — the target: where you want the hand; the only input IK looks at</span><span class="def"><code>cos(θ<sub>2</sub>)</code> — the elbow bend the target's distance demands (this line is the law of cosines in disguise)</span><span class="def"><code>±</code> — the headline character: two signs, two elbow shapes, two possibilities</span><span class="def"><code>atan2(…)</code> — aims the shoulder so the chosen elbow shape lands on the target</span><span class="note">The failure mode is honest, too: if the first line demands |cos θ<sub>2</sub>| &gt; 1, no elbow angle exists — the target is outside the arm's reach (or inside the hole a folded arm can't touch) and IK returns zero possibilities. Exactly ±1 → the two possibilities merge into one.</span></span>
+  </div>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 01 — The possibility finder</span><span class="tag">hand in, joints out</span></div>
+    <div class="widget-body">
+      <canvas id="cB" height="300"></canvas>
+      <div class="controls">
+        <div class="control">
+          <label><span>Target x (m)</span><output id="wBxOut">0.55</output></label>
+          <input type="range" id="wBx" min="-100" max="100" value="55" step="5" aria-label="Target x position in meters">
+        </div>
+        <div class="control">
+          <label><span>Target y (m)</span><output id="wByOut">0.35</output></label>
+          <input type="range" id="wBy" min="-40" max="100" value="35" step="5" aria-label="Target y position in meters">
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout r-ch"><div class="k">Possibilities</div><div class="v" id="wBn">—</div></div>
+        <div class="readout"><div class="k">Elbow-down θ1, θ2</div><div class="v" id="wBa">—</div></div>
+        <div class="readout"><div class="k">Elbow-up θ1, θ2</div><div class="v" id="wBb">—</div></div>
+      </div>
+      <p class="hint">Experiments: <strong>(1)</strong> Default target — two arms, one solid, one ghost, both touching the same point: a two-item menu. <strong>(2)</strong> Slide to x = 1.00, y = 0 — full stretch: the two possibilities collapse into one straight arm. <strong>(3)</strong> Push past the rim (x = 1.00, y = 0.60) — zero possibilities; the readout says so and forward kinematics can't be argued with. <strong>(4)</strong> Creep toward the base (x = 0.05, y = 0.05) — unreachable again, from the inside: a two-link arm can't fold shorter than L1 − L2 = 0.10 m.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. from arms to drivetrains ============ -->
+<section>
+  <div class="step">Part 4 / From arms to drivetrains</div>
+  <h2>A drivetrain is an arm wearing wheels</h2>
+  <p>Now swap mechanisms and keep the ideas. For a drivetrain, the <strong>end effector</strong> is the whole chassis, and the "joints" are the wheels. One honest difference: an arm's dictionary is written in <em>positions</em>, a drivetrain's in <em>velocities</em> — wheels roll continuously, so the natural question isn't "where is the chassis" but "how is it moving right now". WPILib packs that "one motion" into a <strong>ChassisSpeeds</strong> — three numbers, always in the robot's own frame:</p>
+
+  <div class="eq">
+    <div class="line"><b>chassis</b> (vx, vy, ω)</div>
+    <span class="who"><span class="def"><code>vx</code> — forward speed, in m/s; positive is toward the robot's front</span><span class="def"><code>vy</code> — sideways speed, in m/s; positive is toward the robot's <em>left</em> (WPILib's convention)</span><span class="def"><code>ω</code> — spin rate ("omega"), in rad/s; positive is counter-clockwise viewed from above</span><span class="note">A drivetrain that can command all three independently — slide any direction while facing anywhere — is called <strong>holonomic</strong>. Swerve is holonomic; a tank drive is not: its wheels can't roll sideways, so vy is stuck at zero.</span></span>
+  </div>
+
+  <p>What does holonomic buy you? Watch two robots get the same order — "the game piece is directly to your left, go get it, keep facing downfield" — and see it in the sim:</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 02 — The sideways test</span><span class="tag">holonomic vs tank</span></div>
+    <div class="widget-body">
+      <canvas id="c0" height="280"></canvas>
+      <div class="controls">
+        <div class="btnrow">
+          <button id="w0replay">Replay</button>
+        </div>
+      </div>
+      <p class="hint">The <span class="mod-t">swerve robot</span> just… goes. Its wheels pivot left and roll, heading untouched. The <span class="rot-t">tank robot</span> has to translate the order into the only language it speaks — turn, drive, turn back — and pays for it in time and in losing sight of the field. Both robots run their real kinematic equations; nothing here is scripted motion.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. diff drive ============ -->
+<section>
+  <div class="step">Part 5 / Warm-up: two wheels</div>
+  <h2>The smallest dictionary that works</h2>
+  <p>Start with the drivetrain you can read at a glance: a <strong>differential drive</strong> (tank drive) — one wheel speed per side. Both wheels forward: drive. One faster: arc. Opposite: spin. The whole dictionary is two lines of arithmetic:</p>
+
+  <div class="eq">
+    <div class="line"><b>forward</b> v = (v<sub>R</sub> + v<sub>L</sub>) / 2&nbsp;&nbsp;&nbsp;ω = (v<sub>R</sub> − v<sub>L</sub>) / W</div>
+    <div class="line"><b>inverse</b> v<sub>L</sub> = v − ω·W/2&nbsp;&nbsp;&nbsp;v<sub>R</sub> = v + ω·W/2</div>
+    <span class="who"><span class="def"><code>v<sub>L</sub></code>, <code>v<sub>R</sub></code> — left and right wheel speeds (m/s)</span><span class="def"><code>v</code> — the chassis forward speed: just the average of the two sides</span><span class="def"><code>ω</code> — the spin rate: the <em>difference</em> between the sides, divided by how far apart they are</span><span class="def"><code>W</code> — the track width: the distance between left and right wheels (m)</span><span class="note">Read the forward line out loud and it's common sense: "the robot goes as fast as its wheels agree, and turns as hard as they disagree." Every drivetrain dictionary is this idea with more geometry.</span></span>
+  </div>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 03 — Two sliders, one robot</span><span class="tag">differential drive</span></div>
+    <div class="widget-body">
+      <canvas id="c1" height="280"></canvas>
+      <details class="plots" id="w1plots">
+        <summary>Plot — chassis v &amp; ω vs time</summary>
+        <div class="plotbody">
+          <canvas id="c1p1" height="180"></canvas>
+          <p class="cap">The two chassis numbers, computed live from the wheel sliders by the forward-kinematics lines above. Move one slider and watch both curves respond — every wheel change is simultaneously a speed change <em>and</em> a turn change. That coupling is exactly what swerve gets rid of.</p>
+        </div>
+      </details>
+      <div class="controls">
+        <div class="control">
+          <label><span>Left wheel v<sub>L</sub> (m/s)</span><output id="w1vlOut">1.5</output></label>
+          <input type="range" id="w1vl" min="-200" max="200" value="150" step="10" aria-label="Left wheel speed">
+        </div>
+        <div class="control">
+          <label><span>Right wheel v<sub>R</sub> (m/s)</span><output id="w1vrOut">1.5</output></label>
+          <input type="range" id="w1vr" min="-200" max="200" value="150" step="10" aria-label="Right wheel speed">
+        </div>
+        <div class="btnrow">
+          <button id="w1reset" class="ghost">Clear trace</button>
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout r-ch"><div class="k">Chassis v</div><div class="v" id="w1rv">—</div></div>
+        <div class="readout r-rot"><div class="k">Chassis ω</div><div class="v" id="w1rw">—</div></div>
+        <div class="readout"><div class="k">Turn radius</div><div class="v" id="w1rr">—</div></div>
+      </div>
+      <p class="hint">Experiments: <strong>(1)</strong> Equal speeds — ω reads exactly 0, the trace is a straight line. <strong>(2)</strong> v<sub>L</sub> = −v<sub>R</sub> — v reads 0 and the robot pirouettes in place. <strong>(3)</strong> v<sub>R</sub> = 2·v<sub>L</sub> — a clean arc; check that the turn-radius readout equals v/ω. <strong>(4)</strong> Now try to make it drive <em>sideways</em>. You can't — no combination of two forward-rolling wheels produces vy. That's non-holonomic in one sentence.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. rigid body ============ -->
+<section>
+  <div class="step">Part 6 / The rigid-body trick</div>
+  <h2>One equation to rule every wheel</h2>
+  <p>Now swerve. Four modules, each free to point anywhere — how do you find each one's marching orders? Here's the trick that makes it easy: <strong>a robot chassis is a rigid body</strong>, and every point on a rigid body moves as the sum of two ingredients. Ingredient one: <span class="ch-t">the translation</span> — every point shares it identically. Ingredient two: <span class="rot-t">the spin</span> — every point orbits the center, moving perpendicular to its arm, faster the farther out it sits (stand on the edge of a merry-go-round and you know this in your stomach).</p>
+
+  <div class="eq">
+    <div class="line"><b>rigid body</b> v<sub>i</sub> = (vx − ω·r<sub>iy</sub> , vy + ω·r<sub>ix</sub>)</div>
+    <span class="who"><span class="def"><code>v<sub>i</sub></code> — the velocity that module i's corner of the chassis is actually moving with (a 2D vector, robot frame)</span><span class="def"><code>vx</code>, <code>vy</code> — the chassis translation, shared by every module identically</span><span class="def"><code>ω</code> — the chassis spin rate</span><span class="def"><code>r<sub>ix</sub></code>, <code>r<sub>iy</sub></code> — module i's position on the chassis, measured from the robot's center (m)</span><span class="note">The ω terms are the spin ingredient: swapped coordinates with one minus sign is the recipe for "perpendicular to the arm, proportional to ω and to distance." Physics classes write it as a cross product, <code>ω × r</code>. Same thing.</span></span>
+  </div>
+
+  <p>See both ingredients add, tip-to-tail, at all four corners at once:</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 04 — The vector kitchen</span><span class="tag">translation + spin</span></div>
+    <div class="widget-body">
+      <canvas id="c2" height="300"></canvas>
+      <div class="controls">
+        <div class="control">
+          <label><span>vx (m/s)</span><output id="w2vxOut">0.8</output></label>
+          <input type="range" id="w2vx" min="-150" max="150" value="80" step="10" aria-label="Chassis forward speed">
+        </div>
+        <div class="control">
+          <label><span>vy (m/s)</span><output id="w2vyOut">0.0</output></label>
+          <input type="range" id="w2vy" min="-150" max="150" value="0" step="10" aria-label="Chassis sideways speed">
+        </div>
+        <div class="control">
+          <label><span>ω (rad/s)</span><output id="w2omOut">1.5</output></label>
+          <input type="range" id="w2om" min="-300" max="300" value="150" step="10" aria-label="Chassis spin rate">
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout r-mod"><div class="k">FL module speed</div><div class="v" id="w2rsp">—</div></div>
+        <div class="readout r-mod"><div class="k">FL module angle</div><div class="v" id="w2rang">—</div></div>
+      </div>
+      <p class="hint">Experiments: <strong>(1)</strong> ω = 0 — four identical <span class="ch-t">violet arrows</span>: pure translation is the same everywhere. <strong>(2)</strong> vx = vy = 0 — the <span class="rot-t">orange arrows</span> form a pinwheel: pure spin, each one perpendicular to its corner's arm. <strong>(3)</strong> Mix them — now every corner's <span class="mod-t">green resultant</span> is different, because each corner adds the <em>same</em> violet arrow to a <em>different</em> orange one. Those four green arrows are the marching orders — the arm's tip-to-tail stack from Widget 00, played four times at once.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7. swerve inverse ============ -->
+<section>
+  <div class="step">Part 7 / Swerve, driving direction</div>
+  <h2>Inverse kinematics: from stick to modules</h2>
+  <p>The green arrows <em>are</em> the answer — each module just has to become its arrow. A swerve module can do exactly two things: point somewhere and roll at some speed. So convert each arrow to polar form, and you have a <strong>module state</strong>:</p>
+
+  <div class="eq">
+    <div class="line"><b>module state</b> speed<sub>i</sub> = √(v<sub>ix</sub>² + v<sub>iy</sub>²)&nbsp;&nbsp;&nbsp;angle<sub>i</sub> = atan2(v<sub>iy</sub>, v<sub>ix</sub>)</div>
+    <div class="line"><b>desaturate</b> if max(speed) &gt; v<sub>max</sub>: scale all speeds by v<sub>max</sub> / max(speed)</div>
+    <span class="who"><span class="def"><code>speed<sub>i</sub></code> — how fast module i's wheel should roll (m/s): the length of its green arrow</span><span class="def"><code>angle<sub>i</sub></code> — where module i should point: the direction of its green arrow (atan2 is arctangent that gets the quadrant right)</span><span class="def"><code>v<sub>max</sub></code> — the fastest a wheel can physically roll</span><span class="note">Desaturation is the honesty step. Ask for full speed <em>and</em> full spin and the math happily orders a corner wheel to exceed v<sub>max</sub> — which it can't do, so the motion would warp. Scaling <em>every</em> wheel by the same factor keeps the motion's shape and gives up only its size.</span></span>
+  </div>
+
+  <p>That's the entire swerve driving pipeline: rigid-body equation → polar form → desaturate. Fly it yourself — and try the field-relative toggle, which is the one extra trick every real swerve uses (it rotates your stick command by the gyro heading, so "away from you" stays "away from you" no matter where the robot faces):</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 05 — The command mixer</span><span class="tag">inverse kinematics, live</span></div>
+    <div class="widget-body">
+      <div class="toggles" style="margin-bottom:14px">
+        <button class="toggle t-field" id="w3field" aria-pressed="false">field-relative: off</button>
+      </div>
+      <canvas id="c3" height="300"></canvas>
+      <details class="plots" id="w3plots">
+        <summary>Plot — the four module speeds vs time</summary>
+        <div class="plotbody">
+          <canvas id="c3p1" height="180"></canvas>
+          <p class="cap">All four wheel speeds, with the dashed line at v<sub>max</sub>. Drive gently and they move independently; pile on translation plus spin and watch the whole family get scaled down together the moment the fastest one hits the ceiling — desaturation happening live.</p>
+        </div>
+      </details>
+      <div class="controls">
+        <div class="control">
+          <label><span>vx (m/s)</span><output id="w3vxOut">1.2</output></label>
+          <input type="range" id="w3vx" min="-200" max="200" value="120" step="10" aria-label="Commanded forward speed">
+        </div>
+        <div class="control">
+          <label><span>vy (m/s)</span><output id="w3vyOut">0.0</output></label>
+          <input type="range" id="w3vy" min="-200" max="200" value="0" step="10" aria-label="Commanded sideways speed">
+        </div>
+        <div class="control">
+          <label><span>ω (rad/s)</span><output id="w3omOut">0.0</output></label>
+          <input type="range" id="w3om" min="-300" max="300" value="0" step="10" aria-label="Commanded spin rate">
+        </div>
+        <div class="btnrow">
+          <button id="w3reset" class="ghost">Reset</button>
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout r-mod"><div class="k">Fastest module</div><div class="v" id="w3rmax">—</div></div>
+        <div class="readout"><div class="k">Desat scale</div><div class="v" id="w3rscale">—</div></div>
+        <div class="readout r-rot"><div class="k">Heading θ</div><div class="v" id="w3rhead">—</div></div>
+      </div>
+      <p class="hint">Experiments: <strong>(1)</strong> Pure vx, then add ω — the robot corkscrews, and the modules point four different ways at once. <strong>(2)</strong> Crank vx = 2 and ω = 3 — the desat readout drops below ×1.00: you asked for more than the wheels have. <strong>(3)</strong> Spin for a moment, stop, then command pure vx with field-relative <em>off</em> — the robot drives off toward wherever its nose points. Turn field-relative <em>on</em> and repeat: same stick, and the trace marches straight down the field regardless of heading. That's the gyro doing the translating. One reassurance while you corkscrew: with vy = 0 and spin on, the path curling sideways is <em>correct</em> — "forward" rotates with the robot, so constant vx plus ω traces a circle by definition. The version of this that <em>is</em> a bug shows up in Part 8.</p>
+    </div>
+  </div>
+
+  <div class="callout green">
+    <strong>Who makes the module obey?</strong> Kinematics hands each module a setpoint — an angle and a speed. Actually <em>reaching</em> that setpoint is a control problem: real modules run a <a href="close-the-loop-pid-control.html">PID controller</a> on the steering angle and <a href="push-first-feedforward-control.html">feedforward plus feedback</a> on the wheel speed. The dictionary writes the orders; the controllers carry them out.
+  </div>
+</section>
+
+<!-- ============ 8. skew & discretize ============ -->
+<section>
+  <div class="step">Part 8 / The fine print</div>
+  <h2>Skew: when spinning bends your line</h2>
+  <p>One more thing before the sensing direction, and it's a famous swerve gotcha. Your code doesn't command the robot continuously — it runs a loop, recomputing module states every <strong>T</strong> seconds (20 ms in WPILib) and holding them fixed in between. But the modules are bolted to a chassis that keeps rotating during those milliseconds, so a command that meant "translate <em>that</em> way" when the loop ran is pointing somewhere slightly different by the loop's end. On average, the executed translation is smeared off-target by half the rotation per loop:</p>
+
+  <div class="eq">
+    <div class="line"><b>skew</b> executed direction is off by ≈ ω·T/2, every loop</div>
+    <div class="line"><b>fix</b> speeds = ChassisSpeeds.discretize(speeds, T);</div>
+    <span class="who"><span class="def"><code>ω</code> — how fast the chassis is spinning (rad/s)</span><span class="def"><code>T</code> — the control loop period (s): how long each command is held before being recomputed</span><span class="def"><code>ω·T/2</code> — the average heading change during one loop: the angle the held translation gets smeared by</span><span class="def"><code>discretize</code> — WPILib's pre-correction: it replaces your command with the one whose rotate-while-translate result, after one whole loop, lands exactly where the original command intended</span><span class="note">The smear compounds: command "straight downfield while spinning" and the sideways error accumulates every single loop — a curved path out of a straight order. The exact correction inside discretize is the <em>pose exponential</em> (twist) — derived in full in the <a href="https://github.com/calcmogul/controls-engineering-in-frc">Controls Engineering in FRC</a> textbook. Feel the size of it: ω = 2 rad/s with T = 100 ms is a 5.7° smear, about 10 cm sideways per meter driven.</span></span>
+  </div>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 06 — The skew lab</span><span class="tag">raw vs discretized</span></div>
+    <div class="widget-body">
+      <p style="margin-top:0;font-size:15px;color:var(--muted)">Both robots get the identical order — hold your dashed line at 1.4 m/s while spinning at ω, recomputed every T. The <span class="rot-t">top robot</span> sends the raw command; the <span class="mod-t">bottom robot</span> runs it through discretize first.</p>
+      <canvas id="c5" height="300"></canvas>
+      <div class="controls">
+        <div class="control">
+          <label><span>Spin ω (rad/s)</span><output id="w5omOut">2.0</output></label>
+          <input type="range" id="w5om" min="0" max="300" value="200" step="10" aria-label="Spin rate in radians per second">
+        </div>
+        <div class="control">
+          <label><span>Loop period T (ms)</span><output id="w5TOut">100 ms</output></label>
+          <input type="range" id="w5T" min="20" max="150" value="100" step="10" aria-label="Control loop period in milliseconds">
+        </div>
+        <div class="btnrow">
+          <button id="w5replay" class="ghost">Restart</button>
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout r-rot"><div class="k">Raw: off the line</div><div class="v" id="w5rnaive">—</div></div>
+        <div class="readout r-mod"><div class="k">Discretized: off by</div><div class="v" id="w5rdisc">—</div></div>
+        <div class="readout"><div class="k">Skew ω·T/2</div><div class="v" id="w5rskew">—</div></div>
+      </div>
+      <p class="hint">Experiments: <strong>(1)</strong> Defaults (ω = 2, T = 100 ms) — the raw robot peels off its lane about 10 cm per meter while the discretized one nails it; the skew readout says 5.7°. <strong>(2)</strong> Drop T to 20 ms — a real robot loop. The raw drift shrinks to ~2 cm per meter: smaller, not gone. This is exactly why an un-discretized swerve subtly bows its auto paths whenever it rotates mid-drive. <strong>(3)</strong> ω = 0 — no spin, no skew, both robots perfect: skew is strictly a rotate-while-translating disease. <strong>(4)</strong> ω = 3 with T = 150 ms — cartoon-grade skew, so you can watch the mechanism: each held command starts correct and rots as the chassis turns under it.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9. swerve forward ============ -->
+<section>
+  <div class="step">Part 9 / Swerve, sensing direction</div>
+  <h2>Forward kinematics: the wheels vote</h2>
+  <p>Now run the dictionary backwards. Each module's encoders report what it actually did — a measured speed and angle, i.e. a measured green arrow. From four arrows, reconstruct the chassis motion — the drivetrain's version of stacking every joint's change into one overall end-effector result. But notice the bookkeeping: four modules × 2 numbers = <strong>8 measurements</strong>, describing a motion with only <strong>3 unknowns</strong> (vx, vy, ω). The system is overdetermined — so the wheels <em>vote</em>, and the mismatch between their stories is physically real: it's wheels fighting each other, called <strong>scrub</strong>:</p>
+
+  <div class="eq">
+    <div class="line"><b>forward</b> vx = mean(v<sub>ix</sub>)&nbsp;&nbsp;&nbsp;vy = mean(v<sub>iy</sub>)</div>
+    <div class="line"><b>spin</b> ω = Σ(r<sub>ix</sub>·v<sub>iy</sub> − r<sub>iy</sub>·v<sub>ix</sub>) / Σ(r<sub>ix</sub>² + r<sub>iy</sub>²)</div>
+    <span class="who"><span class="def"><code>v<sub>ix</sub></code>, <code>v<sub>iy</sub></code> — module i's <em>measured</em> velocity vector (from its encoder speed and angle)</span><span class="def"><code>mean(·)</code> — average over the four modules: translation is what the wheels agree on</span><span class="def"><code>ω</code> — recovered spin: each wheel's "turning contribution" (its velocity crossed with its arm), averaged with lever-arm weighting</span><span class="note">This is the least-squares answer — the single (vx, vy, ω) that best explains all eight numbers at once, for a symmetric module layout. Whatever it can't explain is the scrub.</span></span>
+  </div>
+
+  <div class="widget">
+    <div class="widget-head"><span class="name">Widget 07 — The scrub detector</span><span class="tag">forward kinematics</span></div>
+    <div class="widget-body">
+      <p style="margin-top:0;font-size:15px;color:var(--muted)">The chassis is commanded to corkscrew (vx = 1.2, ω = 1.2), but the front-left module's steering is misaligned by the slider amount. Forward kinematics takes the four measured arrows and votes; the scrub meter shows how much of the wheels' story it couldn't explain.</p>
+      <canvas id="c4" height="300"></canvas>
+      <div class="controls">
+        <div class="control">
+          <label><span>FL steering error (°)</span><output id="w4delOut">0°</output></label>
+          <input type="range" id="w4del" min="-45" max="45" value="0" aria-label="Front-left module steering misalignment in degrees">
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout r-ch"><div class="k">Voted vx</div><div class="v" id="w4rvx">—</div></div>
+        <div class="readout r-rot"><div class="k">Voted ω</div><div class="v" id="w4rom">—</div></div>
+        <div class="readout"><div class="k">Scrub</div><div class="v" id="w4rscrub">—</div></div>
+      </div>
+      <p class="hint">Experiments: <strong>(1)</strong> 0° — the vote reproduces the command exactly and scrub reads zero: consistent wheels tell one story. <strong>(2)</strong> 20° — the voted vx and ω shift and the scrub meter wakes up; on carpet this is tire wear, wasted current, and a robot that crabs when told to go straight. <strong>(3)</strong> 45° — one wheel now fights three; the vote stays surprisingly sane, because least squares lets the majority outvote the liar. This same vote, run on <em>distances</em> instead of speeds, is how the robot tracks its position — the whole <a href="count-your-steps-odometry.html">next lesson</a>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10. wpilib + recap ============ -->
+<section>
+  <div class="step">Part 10 / WPILib &amp; recap</div>
+  <h2>The dictionary, shipped as a class</h2>
+  <p>Everything on this page is four lines of WPILib. You describe the geometry once — where each module sits — and the library does both directions of the dictionary plus desaturation:</p>
+
+  <div class="eq">
+    <div class="line">kinematics = new SwerveDriveKinematics(m_flLoc, m_frLoc, m_blLoc, m_brLoc);</div>
+    <div class="line">states = kinematics.toSwerveModuleStates(chassisSpeeds);</div>
+    <div class="line">SwerveDriveKinematics.desaturateWheelSpeeds(states, kMaxSpeed);</div>
+    <div class="line">measured = kinematics.toChassisSpeeds(state1, state2, state3, state4);</div>
+    <span class="who"><span class="def"><code>SwerveDriveKinematics</code> — the dictionary object; you hand it each module's position as a Translation2d (+x forward, +y left, meters from robot center)</span><span class="def"><code>toSwerveModuleStates</code> — inverse kinematics: ChassisSpeeds in, one SwerveModuleState (speed + angle) per module out, in constructor order</span><span class="def"><code>desaturateWheelSpeeds</code> — the honesty step from Part 4, applied in place</span><span class="def"><code>toChassisSpeeds</code> — forward kinematics: the wheels vote</span><span class="note">Three extras worth knowing: <code>ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy, ω, gyroAngle)</code> is the field-relative toggle from Widget 05; <code>ChassisSpeeds.discretize(speeds, 0.02)</code> is the skew fix from Part 8, called right before <code>toSwerveModuleStates</code>; and <code>toSwerveModuleStates</code> accepts an optional center of rotation — pass a module's own location and the robot pirouettes around that corner. Full docs: <a href="https://docs.wpilib.org/en/stable/docs/software/kinematics-and-odometry/intro-and-chassis-speeds.html">Intro and Chassis Speeds</a> and <a href="https://docs.wpilib.org/en/stable/docs/software/kinematics-and-odometry/swerve-drive-kinematics.html">Swerve Drive Kinematics</a>; for the full matrix derivation, see the <a href="https://github.com/calcmogul/controls-engineering-in-frc">Controls Engineering in FRC</a> textbook.</span></span>
+  </div>
+
+  <h2 style="margin-top:56px">Six ideas to walk away with</h2>
+  <p><strong>1. Kinematics is a dictionary, not a controller.</strong> Pure geometry between "what the joints do" and "what the end effector does" — it never decides how hard to push.</p>
+  <p><strong>2. Forward stacks; inverse proposes.</strong> Forward kinematics adds every joint's change tip to tail into one certain answer for the end effector. Inverse kinematics starts from the end effector and returns possibilities — two elbows, one, or none — and your code picks among them.</p>
+  <p><strong>3. Chassis speeds are the drivetrain's end effector.</strong> (vx, vy, ω), robot-relative, written in velocities instead of positions. Commanding all three independently is what "holonomic" means.</p>
+  <p><strong>4. One equation runs all of swerve.</strong> Every module's job is v<sub>i</sub> = translation + spin × arm; convert each arrow to speed-and-angle, then desaturate so no wheel is ordered past its limit.</p>
+  <p><strong>5. Real loops are discrete — mind the skew.</strong> Rotating while translating smears each held command by ω·T/2, bowing straight lines. ChassisSpeeds.discretize pre-bends the command so every loop lands where you meant.</p>
+  <p><strong>6. Forward kinematics is a vote.</strong> Eight measurements, three unknowns: least squares stacks what the wheels report into the best single story, and the leftover disagreement is real, physical scrub.</p>
+  <div class="eq glossary">
+    <div class="line"><code>kinematics</code> — the geometry dictionary between joint motion and end-effector motion</div>
+    <div class="line"><code>end effector</code> — the business end being placed: the hand, the chassis</div>
+    <div class="line"><code>forward kinematics</code> — stack every joint's change → one end-effector answer (the sensing direction)</div>
+    <div class="line"><code>inverse kinematics</code> — end-effector target → joint possibilities (the driving direction)</div>
+    <div class="line"><code>chassis speeds</code> — (vx, vy, ω): one robot motion, robot-relative</div>
+    <div class="line"><code>holonomic</code> — able to command vx, vy, ω independently, like swerve</div>
+    <div class="line"><code>module state</code> — one swerve module's orders: a speed and an angle</div>
+    <div class="line"><code>desaturation</code> — scaling all wheels down together when one exceeds v<sub>max</sub></div>
+    <div class="line"><code>field-relative</code> — stick commands rotated by the gyro so "away" stays "away"</div>
+    <div class="line"><code>skew</code> — the sideways drift from rotating while translating on a discrete loop</div>
+    <div class="line"><code>discretize</code> — WPILib's pre-correction that makes each held command land as intended</div>
+    <div class="line"><code>scrub</code> — wheels fighting each other: the motion the vote can't explain</div>
+    <span class="who">Pocket glossary — the whole page, one line each. Further reading: <a href="https://docs.wpilib.org/en/stable/docs/software/kinematics-and-odometry/intro-and-chassis-speeds.html">WPILib kinematics docs</a> and the <a href="https://github.com/calcmogul/controls-engineering-in-frc">Controls Engineering in FRC</a> textbook.</span>
+  </div>
+</section>
+
+<a class="next" href="count-your-steps-odometry.html">
+  <span class="k">Next lesson</span>
+  <span class="t">Count Your Steps — Odometry →</span>
+</a>
+
+<div class="footer">Built as an interactive lesson · every robot on this page is driven by the exact kinematic equations shown — the arrows are the actual math being computed, not clip art.</div>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+/* ---------- helpers ---------- */
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const COL = {
+  ink: css("--ink"), ch: css("--ch"), rot: css("--rot"), mod: css("--mod"),
+  muted: css("--muted"), grid: "#E4EDF2"
+};
+function setupCanvas(id, cssHeight){
+  const c = document.getElementById(id);
+  const ctx = c.getContext("2d");
+  function fit(){
+    const dpr = window.devicePixelRatio || 1;
+    const w = c.clientWidth || c.parentElement.clientWidth;
+    c.width = Math.round(w * dpr);
+    c.height = Math.round(cssHeight * dpr);
+    c.style.height = cssHeight + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (c._redraw) c._redraw();
+  }
+  new ResizeObserver(fit).observe(c);
+  fit();
+  return { c, ctx, W: () => c.clientWidth, H: () => cssHeight };
+}
+function grid(ctx, W, H){
+  ctx.strokeStyle = COL.grid; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for(let x = 28; x < W; x += 28){ ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+  for(let y = 28; y < H; y += 28){ ctx.moveTo(0, y); ctx.lineTo(W, y); }
+  ctx.stroke();
+}
+function arrow(ctx, x1, y1, x2, y2, color, width){
+  ctx.save();
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width || 1.6;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  const a = Math.atan2(y2 - y1, x2 - x1), L = 8;
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - L*Math.cos(a - 0.42), y2 - L*Math.sin(a - 0.42));
+  ctx.lineTo(x2 - L*Math.cos(a + 0.42), y2 - L*Math.sin(a + 0.42));
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+/* Canvas label with a paper-colored halo so moving robots never bury it */
+function labelText(ctx, txt, x, y, col, font){
+  ctx.save();
+  ctx.font = font || "600 11px 'IBM Plex Mono', monospace";
+  ctx.textAlign = "left";
+  ctx.strokeStyle = "rgba(251,253,254,.9)"; ctx.lineWidth = 4; ctx.lineJoin = "round";
+  ctx.strokeText(txt, x, y);
+  ctx.fillStyle = col;
+  ctx.fillText(txt, x, y);
+  ctx.restore();
+}
+function linePlot(ctx, W, H, cfg){
+  const padL = 48, padR = 12, padT = 16, padB = 30;
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = COL.ink; ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, H - padB); ctx.lineTo(W - padR, H - padB);
+  ctx.stroke();
+  const X = v => padL + (v - cfg.x0) / (cfg.x1 - cfg.x0) * (W - padL - padR);
+  const Y = v => H - padB - (v - cfg.y0) / (cfg.y1 - cfg.y0) * (H - padT - padB);
+  const clampY = y => Math.max(padT, Math.min(H - padB, y));
+  const fmt = v => Math.abs(v) >= 10 ? v.toFixed(0) : v.toFixed(1);
+  ctx.font = "10.5px 'IBM Plex Mono', monospace"; ctx.fillStyle = COL.muted;
+  ctx.textAlign = "center";
+  ctx.fillText(cfg.xLabel, (padL + W - padR)/2, H - 8);
+  ctx.save(); ctx.translate(12, (padT + H - padB)/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText(cfg.yLabel, 0, 0); ctx.restore();
+  ctx.textAlign = "right";
+  [cfg.y0, (cfg.y0 + cfg.y1)/2, cfg.y1].forEach(v => ctx.fillText(fmt(v), padL - 6, Y(v) + 3));
+  (cfg.hlines || []).forEach(hl => {
+    ctx.strokeStyle = hl.col; ctx.setLineDash([5,4]); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(padL, Y(hl.y)); ctx.lineTo(W - padR, Y(hl.y)); ctx.stroke();
+    ctx.setLineDash([]);
+    if(hl.label){ ctx.fillStyle = hl.col; ctx.textAlign = "left"; ctx.fillText(hl.label, padL + 4, Y(hl.y) - 4); }
+  });
+  cfg.series.forEach(s => {
+    ctx.strokeStyle = s.col; ctx.lineWidth = 2; ctx.setLineDash(s.dash || []);
+    ctx.beginPath();
+    let started = false;
+    s.pts.forEach(p => {
+      if(p.x < cfg.x0 || p.x > cfg.x1) return;
+      const x = X(p.x), y = clampY(Y(p.y));
+      if(!started){ ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+    });
+    ctx.stroke(); ctx.setLineDash([]);
+  });
+  let lx = padL + 10;
+  ctx.font = "600 10.5px 'IBM Plex Mono', monospace"; ctx.textAlign = "left";
+  cfg.series.forEach(s => {
+    if(!s.name) return;
+    ctx.fillStyle = s.col;
+    ctx.fillText("— " + s.name, lx, padT + 10);
+    lx += ctx.measureText("— " + s.name).width + 18;
+  });
+}
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function onVisible(el, cb){
+  if(reduceMotion) return;
+  const io = new IntersectionObserver((es, o) => {
+    es.forEach(en => { if(en.isIntersecting){ cb(); o.disconnect(); } });
+  }, { threshold: 0.35 });
+  io.observe(el);
+}
+
+/* ---------- shared geometry (WPILib frame: +x forward, +y left, CCW+) ---------- */
+const rot2 = (x, y, th) => [x*Math.cos(th) - y*Math.sin(th), x*Math.sin(th) + y*Math.cos(th)];
+const HALF = 0.3; // module square half-spacing (m)
+const MODS = [[HALF, HALF], [HALF, -HALF], [-HALF, HALF], [-HALF, -HALF]]; // FL FR BL BR
+const VMAX = 2.5;
+
+/* Inverse kinematics: chassis speeds -> per-module velocity vectors + states */
+function swerveIK(vx, vy, om){
+  return MODS.map(([rx, ry]) => {
+    const mvx = vx - om*ry, mvy = vy + om*rx;
+    return { vx: mvx, vy: mvy, sp: Math.hypot(mvx, mvy), ang: Math.atan2(mvy, mvx) };
+  });
+}
+function desaturate(states, vmax){
+  const top = Math.max(...states.map(s => s.sp));
+  const k = top > vmax ? vmax/top : 1;
+  states.forEach(s => { s.sp *= k; s.vx *= k; s.vy *= k; });
+  return k;
+}
+/* Forward kinematics: least squares for a symmetric layout */
+function swerveFK(vecs){
+  const vx = vecs.reduce((a, v) => a + v.vx, 0) / vecs.length;
+  const vy = vecs.reduce((a, v) => a + v.vy, 0) / vecs.length;
+  let num = 0, den = 0;
+  vecs.forEach((v, i) => {
+    const [rx, ry] = MODS[i];
+    num += rx*v.vy - ry*v.vx;
+    den += rx*rx + ry*ry;
+  });
+  return { vx, vy, om: num/den };
+}
+
+/* WPILib ChassisSpeeds.discretize: the constant robot-frame command whose
+   rotate-while-translate result over one loop period lands where the raw
+   command intended (the pose-exponential correction) */
+function discretize(vx, vy, om, dt){
+  const dx = vx*dt, dy = vy*dt, dth = om*dt;
+  const sin = Math.sin(dth), cos = Math.cos(dth);
+  let halfByTan;
+  if(Math.abs(cos - 1) < 1e-9) halfByTan = 1 - dth*dth/12;
+  else halfByTan = -(dth/2)*sin/(cos - 1);
+  const tx = dx*halfByTan + dy*dth/2;
+  const ty = -dx*dth/2 + dy*halfByTan;
+  return { vx: tx/dt, vy: ty/dt, om };
+}
+
+/* Screen mapping: world +x is screen-right, world +y is screen-UP */
+function mkView(ox, oy, ppm){
+  return { sx: x => ox + x*ppm, sy: y => oy - y*ppm, ppm };
+}
+/* Draw a swerve chassis; mods = [{ang, sp}] robot-frame module states (optional) */
+function drawSwerveBot(ctx, vw, x, y, th, mods, col){
+  const cs = [[HALF, HALF], [HALF, -HALF], [-HALF, -HALF], [-HALF, HALF]]
+    .map(([px, py]) => { const [wx, wy] = rot2(px, py, th); return [vw.sx(x + wx), vw.sy(y + wy)]; });
+  ctx.strokeStyle = col || COL.ink; ctx.lineWidth = 2; ctx.fillStyle = "rgba(22,40,59,.04)";
+  ctx.beginPath();
+  cs.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  const [hx, hy] = rot2(HALF*1.45, 0, th);
+  arrow(ctx, vw.sx(x), vw.sy(y), vw.sx(x + hx), vw.sy(y + hy), col || COL.ink, 2);
+  if(mods){
+    mods.forEach((m, i) => {
+      const [rx, ry] = MODS[i];
+      const [wx, wy] = rot2(rx, ry, th);
+      const cxp = vw.sx(x + wx), cyp = vw.sy(y + wy);
+      const wa = th + m.ang, len = 0.17;
+      const [dx, dy] = rot2(len/2, 0, wa);
+      ctx.strokeStyle = COL.mod; ctx.lineWidth = 6; ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(vw.sx(x + wx - dx), vw.sy(y + wy - dy));
+      ctx.lineTo(vw.sx(x + wx + dx), vw.sy(y + wy + dy));
+      ctx.stroke(); ctx.lineCap = "butt";
+      if(m.sp !== undefined && Math.abs(m.sp) > 0.03){
+        const [ax, ay] = rot2(0.09 + m.sp*0.22, 0, wa);
+        arrow(ctx, cxp, cyp, vw.sx(x + wx + ax), vw.sy(y + wy + ay), COL.mod, 1.8);
+      }
+    });
+  }
+}
+/* Draw a tank chassis: body + two side wheel bars */
+function drawTankBot(ctx, vw, x, y, th, col){
+  const cs = [[HALF, HALF], [HALF, -HALF], [-HALF, -HALF], [-HALF, HALF]]
+    .map(([px, py]) => { const [wx, wy] = rot2(px, py, th); return [vw.sx(x + wx), vw.sy(y + wy)]; });
+  ctx.strokeStyle = col || COL.ink; ctx.lineWidth = 2; ctx.fillStyle = "rgba(22,40,59,.04)";
+  ctx.beginPath();
+  cs.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  [-1, 1].forEach(side => {
+    const [ax, ay] = rot2(-HALF*0.8, side*HALF, th);
+    const [bx, by] = rot2(HALF*0.8, side*HALF, th);
+    ctx.strokeStyle = col || COL.ink; ctx.lineWidth = 6; ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(vw.sx(x + ax), vw.sy(y + ay));
+    ctx.lineTo(vw.sx(x + bx), vw.sy(y + by));
+    ctx.stroke(); ctx.lineCap = "butt";
+  });
+  const [hx, hy] = rot2(HALF*1.45, 0, th);
+  arrow(ctx, vw.sx(x), vw.sy(y), vw.sx(x + hx), vw.sy(y + hy), col || COL.ink, 2);
+}
+function drawTrace(ctx, vw, pts, col){
+  if(pts.length < 2) return;
+  ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.setLineDash([1, 5]);
+  ctx.beginPath();
+  let started = false;
+  pts.forEach(p => {
+    if(p === null){ started = false; return; }
+    const x = vw.sx(p[0]), y = vw.sy(p[1]);
+    if(!started){ ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+  });
+  ctx.stroke(); ctx.setLineDash([]);
+}
+
+/* ============================================================
+   WIDGET A — the stacking bench (arm forward kinematics)
+============================================================ */
+(() => {
+  const HGT = 300, L1 = 0.55, L2 = 0.45;
+  const { c, ctx, W } = setupCanvas("cA", HGT);
+  const t1El = document.getElementById("wAt1");
+  const t2El = document.getElementById("wAt2");
+  let trace = [];
+
+  function fk(t1, t2){
+    const ex = L1*Math.cos(t1), ey = L1*Math.sin(t1);
+    return { ex, ey, hx: ex + L2*Math.cos(t1 + t2), hy: ey + L2*Math.sin(t1 + t2) };
+  }
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    const vw = mkView(w/2, HGT - 76, Math.min(150, (HGT - 110)/1.02));
+    const t1 = t1El.value*Math.PI/180, t2 = t2El.value*Math.PI/180;
+    const a = fk(t1, t2);
+    ctx.strokeStyle = COL.grid; ctx.setLineDash([4, 6]); ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.arc(vw.sx(0), vw.sy(0), (L1 + L2)*vw.ppm, 0, Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    drawTrace(ctx, vw, trace, COL.ch);
+    // links underneath, faint, so the contribution arrows read on top
+    ctx.strokeStyle = "rgba(22,40,59,.16)"; ctx.lineWidth = 10; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(vw.sx(0), vw.sy(0)); ctx.lineTo(vw.sx(a.ex), vw.sy(a.ey)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(vw.sx(a.ex), vw.sy(a.ey)); ctx.lineTo(vw.sx(a.hx), vw.sy(a.hy)); ctx.stroke();
+    ctx.lineCap = "butt";
+    arrow(ctx, vw.sx(0), vw.sy(0), vw.sx(a.ex), vw.sy(a.ey), COL.ch, 2.6);
+    arrow(ctx, vw.sx(a.ex), vw.sy(a.ey), vw.sx(a.hx), vw.sy(a.hy), COL.rot, 2.6);
+    ctx.fillStyle = COL.ink;
+    ctx.beginPath(); ctx.arc(vw.sx(0), vw.sy(0), 6, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(vw.sx(a.ex), vw.sy(a.ey), 5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = COL.mod;
+    ctx.beginPath(); ctx.arc(vw.sx(a.hx), vw.sy(a.hy), 7.5, 0, Math.PI*2); ctx.fill();
+    ctx.font = "600 11px 'IBM Plex Mono', monospace"; ctx.textAlign = "left";
+    ctx.fillStyle = COL.ch;  ctx.fillText("— link 1: the shoulder's change", 14, 22);
+    ctx.fillStyle = COL.rot; ctx.fillText("— link 2: the elbow's change, stacked on top", 14, 40);
+    ctx.fillStyle = COL.mod; ctx.fillText("● the hand — the stack's total", 14, 58);
+  }
+  c._redraw = draw;
+
+  function update(){
+    document.getElementById("wAt1Out").textContent = t1El.value + "°";
+    document.getElementById("wAt2Out").textContent = t2El.value + "°";
+    const a = fk(t1El.value*Math.PI/180, t2El.value*Math.PI/180);
+    document.getElementById("wArx").textContent = a.hx.toFixed(2) + " m";
+    document.getElementById("wAry").textContent = a.hy.toFixed(2) + " m";
+    trace.push([a.hx, a.hy]);
+    if(trace.length > 500) trace = trace.filter((_, i) => i % 2 === 0);
+    draw();
+  }
+  [t1El, t2El].forEach(el => el.addEventListener("input", update));
+
+  // ambient elbow sweep until the user takes over
+  let sweeping = true, swT = 0.71, swAnim = null;
+  function autoSweep(){
+    if(!sweeping) return;
+    swT += 0.009;
+    t2El.value = Math.round(Math.sin(swT) * 130);
+    update();
+    swAnim = requestAnimationFrame(autoSweep);
+  }
+  [t1El, t2El].forEach(el => {
+    ["pointerdown", "keydown"].forEach(ev => el.addEventListener(ev, () => {
+      sweeping = false; cancelAnimationFrame(swAnim);
+    }));
+  });
+  onVisible(c, autoSweep);
+  update();
+})();
+
+/* ============================================================
+   WIDGET B — the possibility finder (arm inverse kinematics)
+============================================================ */
+(() => {
+  const HGT = 300, L1 = 0.55, L2 = 0.45;
+  const { c, ctx, W } = setupCanvas("cB", HGT);
+  const xEl = document.getElementById("wBx");
+  const yEl = document.getElementById("wBy");
+
+  /* Solutions for a 2-link arm; the ± in acos is the two possibilities */
+  function ik(x, y){
+    const d2 = x*x + y*y;
+    const c2 = (d2 - L1*L1 - L2*L2) / (2*L1*L2);
+    if(c2 > 1 || c2 < -1) return [];
+    const t2a = Math.acos(c2);
+    const sols = [t2a, -t2a].map(t2 => ({
+      t1: Math.atan2(y, x) - Math.atan2(L2*Math.sin(t2), L1 + L2*Math.cos(t2)),
+      t2
+    }));
+    if(t2a < 1e-4 || Math.PI - t2a < 1e-4) return [sols[0]]; // full stretch / full fold: the menu collapses to one
+    return sols;
+  }
+  function drawArm(vw, sol, ghost){
+    const ex = L1*Math.cos(sol.t1), ey = L1*Math.sin(sol.t1);
+    const hx = ex + L2*Math.cos(sol.t1 + sol.t2), hy = ey + L2*Math.sin(sol.t1 + sol.t2);
+    ctx.save();
+    ctx.strokeStyle = ghost ? COL.muted : "rgba(22,40,59,.55)";
+    ctx.lineWidth = ghost ? 6 : 9; ctx.lineCap = "round";
+    if(ghost) ctx.setLineDash([2, 9]);
+    ctx.beginPath(); ctx.moveTo(vw.sx(0), vw.sy(0)); ctx.lineTo(vw.sx(ex), vw.sy(ey)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(vw.sx(ex), vw.sy(ey)); ctx.lineTo(vw.sx(hx), vw.sy(hy)); ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = ghost ? COL.muted : COL.ink;
+    ctx.beginPath(); ctx.arc(vw.sx(ex), vw.sy(ey), ghost ? 4 : 5, 0, Math.PI*2); ctx.fill();
+  }
+  const deg = r => (r*180/Math.PI).toFixed(0) + "°";
+
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    const vw = mkView(w/2, HGT - 76, Math.min(150, (HGT - 110)/1.02));
+    const tx = xEl.value/100, ty = yEl.value/100;
+    // the reach annulus: between full fold and full stretch
+    ctx.strokeStyle = COL.grid; ctx.setLineDash([4, 6]); ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.arc(vw.sx(0), vw.sy(0), (L1 + L2)*vw.ppm, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(vw.sx(0), vw.sy(0), Math.abs(L1 - L2)*vw.ppm, 0, Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    const sols = ik(tx, ty);
+    if(sols.length > 1) drawArm(vw, sols[1], true);
+    if(sols.length > 0) drawArm(vw, sols[0], false);
+    ctx.fillStyle = COL.ink;
+    ctx.beginPath(); ctx.arc(vw.sx(0), vw.sy(0), 6, 0, Math.PI*2); ctx.fill();
+    // the target: the only thing IK looks at
+    ctx.strokeStyle = COL.ch; ctx.setLineDash([5, 4]); ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.arc(vw.sx(tx), vw.sy(ty), 12, 0, Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = COL.ch;
+    ctx.beginPath(); ctx.arc(vw.sx(tx), vw.sy(ty), 4, 0, Math.PI*2); ctx.fill();
+    ctx.font = "600 11px 'IBM Plex Mono', monospace"; ctx.textAlign = "left";
+    if(sols.length === 0){
+      ctx.fillStyle = COL.rot;
+      ctx.fillText("unreachable — zero possibilities", vw.sx(tx) + 18, vw.sy(ty) + 4);
+    }
+    ctx.fillStyle = COL.ink;  ctx.fillText("— possibility 1 (elbow down)", 14, 22);
+    ctx.fillStyle = COL.muted; ctx.fillText("- - possibility 2 (elbow up)", 14, 40);
+    ctx.fillStyle = COL.ch;   ctx.fillText("◯ the target", 14, 58);
+  }
+  c._redraw = draw;
+
+  function update(){
+    const tx = xEl.value/100, ty = yEl.value/100;
+    document.getElementById("wBxOut").textContent = tx.toFixed(2);
+    document.getElementById("wByOut").textContent = ty.toFixed(2);
+    const sols = ik(tx, ty);
+    document.getElementById("wBn").textContent = sols.length;
+    document.getElementById("wBa").textContent = sols.length > 0 ? deg(sols[0].t1) + ", " + deg(sols[0].t2) : "—";
+    document.getElementById("wBb").textContent = sols.length > 1 ? deg(sols[1].t1) + ", " + deg(sols[1].t2) : "—";
+    draw();
+  }
+  [xEl, yEl].forEach(el => el.addEventListener("input", update));
+
+  // ambient target sweep until the user takes over
+  let sweeping = true, swT = 0.6, swAnim = null;
+  function autoSweep(){
+    if(!sweeping) return;
+    swT += 0.007;
+    xEl.value = Math.round(20 + Math.sin(swT) * 75);
+    update();
+    swAnim = requestAnimationFrame(autoSweep);
+  }
+  [xEl, yEl].forEach(el => {
+    ["pointerdown", "keydown"].forEach(ev => el.addEventListener(ev, () => {
+      sweeping = false; cancelAnimationFrame(swAnim);
+    }));
+  });
+  onVisible(c, autoSweep);
+  update();
+})();
+
+/* ============================================================
+   WIDGET 0 — the sideways test: swerve vs tank
+============================================================ */
+(() => {
+  const HGT = 280;
+  const { c, ctx, W } = setupCanvas("c0", HGT);
+  const GOAL = 1.7; // meters to the left (+y)
+  let sw, tk, t = 0, anim = null, finSw = null, finTk = null;
+  function reset(){
+    sw = { x: 0, y: 0, th: 0 };
+    tk = { x: 0, y: 0, th: 0, phase: 0 };
+    t = 0; finSw = finTk = null;
+  }
+  reset();
+  if(reduceMotion){ sw.y = GOAL; tk.th = Math.PI/2; tk.y = GOAL*0.55; }
+
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    const ppm = Math.min(56, w/9);
+    const vwS = mkView(w*0.28, HGT - 62, ppm);
+    const vwT = mkView(w*0.72, HGT - 62, ppm);
+    ctx.font = "600 12px 'IBM Plex Mono', monospace"; ctx.textAlign = "left"; ctx.fillStyle = COL.muted;
+    ctx.fillText("SWERVE (holonomic)", 14, 22);
+    ctx.fillText("TANK (turn, drive, turn)", w/2 + 14, 22);
+    ctx.strokeStyle = COL.grid; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(w/2, 12); ctx.lineTo(w/2, HGT - 12); ctx.stroke();
+    // goal markers (directly "left" of start = +y = up-screen)
+    [[vwS, 0, GOAL], [vwT, 0, GOAL]].forEach(([vw, gx, gy]) => {
+      ctx.strokeStyle = COL.ch; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.arc(vw.sx(gx), vw.sy(gy), 11, 0, Math.PI*2); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = COL.ch;
+      ctx.beginPath(); ctx.arc(vw.sx(gx), vw.sy(gy), 3.5, 0, Math.PI*2); ctx.fill();
+    });
+    const swStates = swerveIK(0, finSw === null ? 1 : 0, 0);
+    drawSwerveBot(ctx, vwS, sw.x, sw.y, sw.th, swStates.map(s => ({ang: s.ang, sp: 0})), COL.mod);
+    drawTankBot(ctx, vwT, tk.x, tk.y, tk.th, COL.rot);
+    ctx.font = "600 12px 'IBM Plex Mono', monospace"; ctx.textAlign = "left";
+    if(finSw !== null){ ctx.fillStyle = COL.mod; ctx.fillText("done in " + finSw.toFixed(1) + " s", 14, 42); }
+    if(finTk !== null){ ctx.fillStyle = COL.rot; ctx.fillText("done in " + finTk.toFixed(1) + " s", w/2 + 14, 42); }
+    else if(finSw !== null){ ctx.fillStyle = COL.muted; ctx.fillText("still translating…", w/2 + 14, 42); }
+  }
+  c._redraw = draw;
+
+  function tick(){
+    const dt = 0.02;
+    t += dt;
+    // swerve: crab straight at the goal, heading held (its real IK allows vy directly)
+    if(finSw === null){
+      const err = GOAL - sw.y;
+      const vy = Math.max(-2, Math.min(2, 3*err));
+      sw.y += vy * dt;
+      if(Math.abs(err) < 0.02) finSw = t;
+    }
+    // tank: three-phase — turn to +90°, drive, turn back (v/ω through its real kinematics limits)
+    if(finTk === null){
+      let v = 0, om = 0;
+      if(tk.phase === 0){
+        om = Math.max(-4, Math.min(4, 6*(Math.PI/2 - tk.th)));
+        if(Math.abs(Math.PI/2 - tk.th) < 0.02) tk.phase = 1;
+      } else if(tk.phase === 1){
+        const err = GOAL - tk.y;
+        v = Math.max(-2, Math.min(2, 3*err));
+        if(Math.abs(err) < 0.02) tk.phase = 2;
+      } else {
+        om = Math.max(-4, Math.min(4, 6*(0 - tk.th)));
+        if(Math.abs(tk.th) < 0.02) finTk = t;
+      }
+      tk.th += om * dt;
+      tk.x += v * Math.cos(tk.th) * dt;
+      tk.y += v * Math.sin(tk.th) * dt;
+    }
+    draw();
+    if(finSw !== null && finTk !== null){
+      anim = null;
+      if(!reduceMotion) setTimeout(() => { if(!anim){ reset(); anim = requestAnimationFrame(tick); } }, 2600);
+      return;
+    }
+    anim = requestAnimationFrame(tick);
+  }
+  function start(){ if(!anim){ reset(); anim = requestAnimationFrame(tick); } }
+  document.getElementById("w0replay").addEventListener("click", () => {
+    cancelAnimationFrame(anim); anim = null; start();
+  });
+  onVisible(c, start);
+  draw();
+})();
+
+/* ============================================================
+   WIDGET 1 — differential drive
+============================================================ */
+(() => {
+  const HGT = 280, TRACK = 0.6;
+  const { c, ctx, W } = setupCanvas("c1", HGT);
+  const vlEl = document.getElementById("w1vl");
+  const vrEl = document.getElementById("w1vr");
+  let bot = { x: 0, y: 0, th: 0 }, trace = [], t = 0, hist = [], anim = null;
+  const FW = 8, FH = 4.2; // world extent for wrapping
+
+  function wrap(){
+    let jumped = false;
+    if(bot.x > FW/2){ bot.x -= FW; jumped = true; }
+    if(bot.x < -FW/2){ bot.x += FW; jumped = true; }
+    if(bot.y > FH/2){ bot.y -= FH; jumped = true; }
+    if(bot.y < -FH/2){ bot.y += FH; jumped = true; }
+    if(jumped) trace.push(null);
+  }
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    const vw = mkView(w/2, HGT/2, Math.min(w/FW, HGT/FH));
+    drawTrace(ctx, vw, trace, COL.ink);
+    drawTankBot(ctx, vw, bot.x, bot.y, bot.th, COL.ink);
+  }
+  const p1 = setupCanvas("c1p1", 180);
+  const w1det = document.getElementById("w1plots");
+  function drawPlots(){
+    if(!w1det.open || hist.length < 2 || !p1.W()) return;
+    const x1 = Math.max(12, t);
+    linePlot(p1.ctx, p1.W(), 180, {
+      x0: 0, x1, y0: -4, y1: 4, xLabel: "time (s)", yLabel: "v (m/s) & ω (rad/s)",
+      hlines: [{ y: 0, col: COL.grid }],
+      series: [
+        { pts: hist.map(h => ({x: h.t, y: h.v})), col: COL.ch, name: "chassis v" },
+        { pts: hist.map(h => ({x: h.t, y: h.om})), col: COL.rot, name: "chassis ω" }
+      ]
+    });
+  }
+  p1.c._redraw = drawPlots;
+  w1det.addEventListener("toggle", drawPlots);
+  c._redraw = () => { draw(); drawPlots(); };
+
+  function tick(){
+    const dt = 0.02;
+    const vl = vlEl.value/100, vr = vrEl.value/100;
+    const v = (vr + vl)/2, om = (vr - vl)/TRACK;   // forward kinematics, live
+    bot.th += om * dt;
+    bot.x += v * Math.cos(bot.th) * dt;
+    bot.y += v * Math.sin(bot.th) * dt;
+    wrap();
+    t += dt;
+    trace.push([bot.x, bot.y]);
+    if(trace.length > 900) trace = trace.filter((_, i) => i % 2 === 0);
+    hist.push({ t, v, om });
+    if(hist.length > 4000) hist = hist.filter((_, i) => i % 2 === 0);
+    document.getElementById("w1rv").textContent = v.toFixed(2) + " m/s";
+    document.getElementById("w1rw").textContent = om.toFixed(2) + " rad/s";
+    document.getElementById("w1rr").textContent = Math.abs(om) < 0.05 ? "∞ (straight)" : Math.abs(v/om).toFixed(2) + " m";
+    draw(); drawPlots();
+    anim = requestAnimationFrame(tick);
+  }
+  vlEl.addEventListener("input", () => document.getElementById("w1vlOut").textContent = (vlEl.value/100).toFixed(1));
+  vrEl.addEventListener("input", () => document.getElementById("w1vrOut").textContent = (vrEl.value/100).toFixed(1));
+  document.getElementById("w1reset").addEventListener("click", () => {
+    bot = { x: 0, y: 0, th: 0 }; trace = []; t = 0; hist = [];
+    draw();
+  });
+
+  // ambient preset cycle until the user takes over
+  const presets = [[150, 150], [-120, 120], [60, 180], [180, 60]];
+  let ambient = true, ambI = 0, ambTimer = null;
+  function ambientNext(){
+    if(!ambient) return;
+    ambI = (ambI + 1) % presets.length;
+    vlEl.value = presets[ambI][0]; vrEl.value = presets[ambI][1];
+    document.getElementById("w1vlOut").textContent = (vlEl.value/100).toFixed(1);
+    document.getElementById("w1vrOut").textContent = (vrEl.value/100).toFixed(1);
+    ambTimer = setTimeout(ambientNext, 4000);
+  }
+  [vlEl, vrEl].forEach(elm => {
+    ["pointerdown", "keydown"].forEach(ev => elm.addEventListener(ev, () => {
+      ambient = false; clearTimeout(ambTimer);
+    }));
+  });
+  onVisible(c, () => {
+    if(!anim) anim = requestAnimationFrame(tick);
+    ambTimer = setTimeout(ambientNext, 4000);
+  });
+  draw();
+})();
+
+/* ============================================================
+   WIDGET 2 — the vector kitchen (v + ω×r at each corner)
+============================================================ */
+(() => {
+  const HGT = 300;
+  const { c, ctx, W } = setupCanvas("c2", HGT);
+  const vxEl = document.getElementById("w2vx");
+  const vyEl = document.getElementById("w2vy");
+  const omEl = document.getElementById("w2om");
+
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    const vw = mkView(w/2, HGT/2, 150);
+    const vx = vxEl.value/100, vy = vyEl.value/100, om = omEl.value/100;
+    drawSwerveBot(ctx, vw, 0, 0, 0, null, COL.ink);
+    const SC = 0.55; // meters of arrow per m/s
+    MODS.forEach(([rx, ry]) => {
+      const px = vw.sx(rx), py = vw.sy(ry);
+      const tx = rx + vx*SC, ty = ry + vy*SC;             // translation ingredient
+      const sx2 = tx - om*ry*SC, sy2 = ty + om*rx*SC;     // + spin ingredient, tip-to-tail
+      if(Math.hypot(vx, vy) > 0.05) arrow(ctx, px, py, vw.sx(tx), vw.sy(ty), COL.ch, 2.2);
+      if(Math.abs(om) > 0.1) arrow(ctx, vw.sx(tx), vw.sy(ty), vw.sx(sx2), vw.sy(sy2), COL.rot, 2.2);
+      if(Math.hypot(sx2 - rx, sy2 - ry) > 0.03) arrow(ctx, px, py, vw.sx(sx2), vw.sy(sy2), COL.mod, 3);
+      ctx.fillStyle = COL.ink;
+      ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI*2); ctx.fill();
+    });
+    ctx.font = "600 11px 'IBM Plex Mono', monospace"; ctx.textAlign = "left";
+    ctx.fillStyle = COL.ch;  ctx.fillText("— translation (same at every corner)", 14, 22);
+    ctx.fillStyle = COL.rot; ctx.fillText("— spin ω×r (pinwheel)", 14, 40);
+    ctx.fillStyle = COL.mod; ctx.fillText("— the module's marching orders", 14, 58);
+  }
+  c._redraw = draw;
+
+  function update(){
+    document.getElementById("w2vxOut").textContent = (vxEl.value/100).toFixed(1);
+    document.getElementById("w2vyOut").textContent = (vyEl.value/100).toFixed(1);
+    document.getElementById("w2omOut").textContent = (omEl.value/100).toFixed(1);
+    const st = swerveIK(vxEl.value/100, vyEl.value/100, omEl.value/100)[0]; // FL
+    document.getElementById("w2rsp").textContent = st.sp.toFixed(2) + " m/s";
+    document.getElementById("w2rang").textContent = (st.ang*180/Math.PI).toFixed(0) + "°";
+    draw();
+  }
+  [vxEl, vyEl, omEl].forEach(el => el.addEventListener("input", update));
+
+  // ambient ω sweep until the user takes over
+  let sweeping = true, swT = 0.52, swAnim = null;
+  function autoSweep(){
+    if(!sweeping) return;
+    swT += 0.008;
+    omEl.value = Math.round(Math.sin(swT) * 280);
+    update();
+    swAnim = requestAnimationFrame(autoSweep);
+  }
+  [vxEl, vyEl, omEl].forEach(el => {
+    ["pointerdown", "keydown"].forEach(ev => el.addEventListener(ev, () => {
+      sweeping = false; cancelAnimationFrame(swAnim);
+    }));
+  });
+  onVisible(c, autoSweep);
+  update();
+})();
+
+/* ============================================================
+   WIDGET 3 — the command mixer (swerve IK, live driving)
+============================================================ */
+(() => {
+  const HGT = 300;
+  const { c, ctx, W } = setupCanvas("c3", HGT);
+  const vxEl = document.getElementById("w3vx");
+  const vyEl = document.getElementById("w3vy");
+  const omEl = document.getElementById("w3om");
+  const fieldBtn = document.getElementById("w3field");
+  let bot = { x: 0, y: 0, th: 0 }, trace = [], t = 0, hist = [], anim = null;
+  let states = swerveIK(0, 0, 0), scale = 1;
+  const FW = 9, FH = 4.4;
+
+  function wrap(){
+    let jumped = false;
+    if(bot.x > FW/2){ bot.x -= FW; jumped = true; }
+    if(bot.x < -FW/2){ bot.x += FW; jumped = true; }
+    if(bot.y > FH/2){ bot.y -= FH; jumped = true; }
+    if(bot.y < -FH/2){ bot.y += FH; jumped = true; }
+    if(jumped) trace.push(null);
+  }
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    const vw = mkView(w/2, HGT/2, Math.min(w/FW, HGT/FH));
+    drawTrace(ctx, vw, trace, COL.ch);
+    drawSwerveBot(ctx, vw, bot.x, bot.y, bot.th, states, COL.ink);
+    // "downfield" compass, drawn last so the roaming robot can't bury it
+    ctx.fillStyle = "rgba(251,253,254,.88)";
+    ctx.beginPath(); ctx.roundRect(8, 12, 134, 40, 8); ctx.fill();
+    arrow(ctx, 16, 26, 66, 26, COL.muted, 1.4);
+    labelText(ctx, "downfield +x", 16, 44, COL.muted, "11px 'IBM Plex Mono', monospace");
+  }
+  const p3 = setupCanvas("c3p1", 180);
+  const w3det = document.getElementById("w3plots");
+  function drawPlots(){
+    if(!w3det.open || hist.length < 2 || !p3.W()) return;
+    const x1 = Math.max(12, t);
+    linePlot(p3.ctx, p3.W(), 180, {
+      x0: 0, x1, y0: 0, y1: 3.2, xLabel: "time (s)", yLabel: "wheel speed (m/s)",
+      hlines: [{ y: VMAX, col: COL.rot, label: "v_max" }],
+      series: [
+        { pts: hist.map(h => ({x: h.t, y: h.s0})), col: COL.mod, name: "FL" },
+        { pts: hist.map(h => ({x: h.t, y: h.s1})), col: COL.ch, name: "FR" },
+        { pts: hist.map(h => ({x: h.t, y: h.s2})), col: COL.ink, name: "BL" },
+        { pts: hist.map(h => ({x: h.t, y: h.s3})), col: COL.muted, name: "BR" }
+      ]
+    });
+  }
+  p3.c._redraw = drawPlots;
+  w3det.addEventListener("toggle", drawPlots);
+  c._redraw = () => { draw(); drawPlots(); };
+
+  function tick(){
+    const dt = 0.02;
+    let vx = vxEl.value/100, vy = vyEl.value/100;
+    const om = omEl.value/100;
+    if(fieldBtn.getAttribute("aria-pressed") === "true"){
+      [vx, vy] = rot2(vx, vy, -bot.th);   // fromFieldRelativeSpeeds: rotate the stick by −heading
+    }
+    states = swerveIK(vx, vy, om);
+    scale = desaturate(states, VMAX);
+    const real = swerveFK(states);        // what the (desaturated) wheels actually produce
+    bot.th += real.om * dt;
+    const [wx, wy] = rot2(real.vx, real.vy, bot.th);
+    bot.x += wx * dt;
+    bot.y += wy * dt;
+    wrap();
+    t += dt;
+    trace.push([bot.x, bot.y]);
+    if(trace.length > 900) trace = trace.filter((_, i) => i % 2 === 0);
+    hist.push({ t, s0: states[0].sp, s1: states[1].sp, s2: states[2].sp, s3: states[3].sp });
+    if(hist.length > 4000) hist = hist.filter((_, i) => i % 2 === 0);
+    const top = Math.max(...states.map(s => s.sp));
+    document.getElementById("w3rmax").textContent = top.toFixed(2) + " m/s";
+    const scEl = document.getElementById("w3rscale");
+    scEl.textContent = "×" + scale.toFixed(2);
+    scEl.style.color = scale < 0.999 ? COL.rot : "";
+    document.getElementById("w3rhead").textContent = ((bot.th*180/Math.PI) % 360).toFixed(0) + "°";
+    draw(); drawPlots();
+    anim = requestAnimationFrame(tick);
+  }
+  vxEl.addEventListener("input", () => document.getElementById("w3vxOut").textContent = (vxEl.value/100).toFixed(1));
+  vyEl.addEventListener("input", () => document.getElementById("w3vyOut").textContent = (vyEl.value/100).toFixed(1));
+  omEl.addEventListener("input", () => document.getElementById("w3omOut").textContent = (omEl.value/100).toFixed(1));
+  fieldBtn.addEventListener("click", () => {
+    const on = fieldBtn.getAttribute("aria-pressed") !== "true";
+    fieldBtn.setAttribute("aria-pressed", on);
+    fieldBtn.textContent = "field-relative: " + (on ? "on" : "off");
+  });
+  document.getElementById("w3reset").addEventListener("click", () => {
+    bot = { x: 0, y: 0, th: 0 }; trace = []; t = 0; hist = [];
+    draw();
+  });
+  onVisible(c, () => { if(!anim) anim = requestAnimationFrame(tick); });
+  draw();
+})();
+
+/* ============================================================
+   WIDGET S — the skew lab (raw vs discretized commands)
+============================================================ */
+(() => {
+  const HGT = 300, VXF = 1.4, LANE = 0.85, XEND = 3.05, XSTART = -3.05;
+  const { c, ctx, W } = setupCanvas("c5", HGT);
+  const omEl = document.getElementById("w5om");
+  const TEl = document.getElementById("w5T");
+  let naive, disc, simT = 0, nextCtrl = 0, anim = null;
+  function mkBot(y){ return { x: XSTART, y, th: 0, cmd: { vx: 0, vy: 0, om: 0 }, trace: [] }; }
+  function reset(){ naive = mkBot(LANE); disc = mkBot(-LANE); simT = 0; nextCtrl = 0; }
+  reset();
+  if(reduceMotion){
+    naive.x = 1.5; naive.y = LANE + 0.45; naive.th = 2.1;
+    disc.x = 1.5; disc.y = -LANE; disc.th = 2.1;
+  }
+
+  function control(){
+    const om = omEl.value/100, T = TEl.value/1000;
+    [naive, disc].forEach((bot, i) => {
+      const [rvx, rvy] = rot2(VXF, 0, -bot.th); // aim at the field line using the heading *right now*
+      bot.cmd = i === 0 ? { vx: rvx, vy: rvy, om } : discretize(rvx, rvy, om, T);
+    });
+  }
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    const vw = mkView(w/2, HGT/2, Math.min(w/6.6, HGT/4.1));
+    [LANE, -LANE].forEach(y => {
+      ctx.strokeStyle = COL.ch; ctx.setLineDash([6, 5]); ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(vw.sx(XSTART), vw.sy(y)); ctx.lineTo(vw.sx(XEND + 0.3), vw.sy(y)); ctx.stroke();
+      ctx.setLineDash([]);
+    });
+    drawTrace(ctx, vw, naive.trace, COL.rot);
+    drawTrace(ctx, vw, disc.trace, COL.mod);
+    drawSwerveBot(ctx, vw, naive.x, naive.y, naive.th, null, COL.rot);
+    drawSwerveBot(ctx, vw, disc.x, disc.y, disc.th, null, COL.mod);
+    labelText(ctx, "the order: hold this line", vw.sx(XSTART), vw.sy(LANE) - 32, COL.ch);
+    labelText(ctx, "— raw command", 14, 22, COL.rot);
+    labelText(ctx, "— discretized", 14, 40, COL.mod);
+  }
+  c._redraw = draw;
+
+  function tick(){
+    const T = TEl.value/1000, dt = 0.004;
+    for(let s = 0; s < 5; s++){ // 0.02 s of sim per frame
+      if(simT >= nextCtrl){ control(); nextCtrl = simT + T; }
+      [naive, disc].forEach(bot => {
+        bot.th += bot.cmd.om * dt; // the held command rides the rotating chassis
+        const [wx, wy] = rot2(bot.cmd.vx, bot.cmd.vy, bot.th);
+        bot.x += wx * dt;
+        bot.y += wy * dt;
+      });
+      simT += dt;
+    }
+    naive.trace.push([naive.x, naive.y]);
+    disc.trace.push([disc.x, disc.y]);
+    if(naive.trace.length > 900){
+      naive.trace = naive.trace.filter((_, i) => i % 2 === 0);
+      disc.trace = disc.trace.filter((_, i) => i % 2 === 0);
+    }
+    document.getElementById("w5rnaive").textContent = ((naive.y - LANE)*100).toFixed(1) + " cm";
+    document.getElementById("w5rdisc").textContent = ((disc.y + LANE)*100).toFixed(1) + " cm";
+    document.getElementById("w5rskew").textContent = (omEl.value/100 * TEl.value/1000 / 2 * 180/Math.PI).toFixed(1) + "°";
+    draw();
+    if(naive.x > XEND || disc.x > XEND || Math.abs(naive.y) > 1.9){
+      anim = null;
+      if(!reduceMotion) setTimeout(() => { if(!anim){ reset(); anim = requestAnimationFrame(tick); } }, 2200);
+      return;
+    }
+    anim = requestAnimationFrame(tick);
+  }
+  omEl.addEventListener("input", () => document.getElementById("w5omOut").textContent = (omEl.value/100).toFixed(1));
+  TEl.addEventListener("input", () => document.getElementById("w5TOut").textContent = TEl.value + " ms");
+  document.getElementById("w5replay").addEventListener("click", () => {
+    cancelAnimationFrame(anim); anim = null; reset();
+    anim = requestAnimationFrame(tick);
+  });
+  onVisible(c, () => { if(!anim){ reset(); anim = requestAnimationFrame(tick); } });
+  draw();
+})();
+
+/* ============================================================
+   WIDGET 4 — the scrub detector (swerve FK with a liar)
+============================================================ */
+(() => {
+  const HGT = 300;
+  const { c, ctx, W } = setupCanvas("c4", HGT);
+  const delEl = document.getElementById("w4del");
+  const CMD = { vx: 1.2, vy: 0, om: 1.2 };
+  let bot = { x: 0, y: 0, th: 0 }, trace = [], anim = null;
+  let meas = [], est = { vx: 0, vy: 0, om: 0 }, scrub = 0;
+  const FW = 9, FH = 4.4;
+
+  function compute(){
+    const del = delEl.value * Math.PI/180;
+    const ideal = swerveIK(CMD.vx, CMD.vy, CMD.om);
+    meas = ideal.map((s, i) => {
+      const ang = s.ang + (i === 0 ? del : 0);  // the FL module lies about its direction
+      return { vx: s.sp*Math.cos(ang), vy: s.sp*Math.sin(ang), sp: s.sp, ang };
+    });
+    est = swerveFK(meas);
+    let ss = 0;
+    meas.forEach((m, i) => {
+      const [rx, ry] = MODS[i];
+      const px = est.vx - est.om*ry, py = est.vy + est.om*rx;  // what the vote predicts for this wheel
+      ss += (m.vx - px)**2 + (m.vy - py)**2;
+    });
+    scrub = Math.sqrt(ss / meas.length);
+  }
+  function wrap(){
+    let jumped = false;
+    if(bot.x > FW/2){ bot.x -= FW; jumped = true; }
+    if(bot.x < -FW/2){ bot.x += FW; jumped = true; }
+    if(bot.y > FH/2){ bot.y -= FH; jumped = true; }
+    if(bot.y < -FH/2){ bot.y += FH; jumped = true; }
+    if(jumped) trace.push(null);
+  }
+  function draw(){
+    const w = W();
+    ctx.clearRect(0, 0, w, HGT);
+    grid(ctx, w, HGT);
+    const vw = mkView(w/2, HGT/2, Math.min(w/FW, HGT/FH));
+    drawTrace(ctx, vw, trace, COL.ch);
+    drawSwerveBot(ctx, vw, bot.x, bot.y, bot.th, meas, COL.ink);
+    // scrub meter, on a backing chip so the roaming robot can't bury it
+    const bx = 14, by = HGT - 30, bw = Math.min(220, w*0.35);
+    ctx.fillStyle = "rgba(251,253,254,.88)";
+    ctx.beginPath(); ctx.roundRect(bx - 6, by - 24, bw + 12, 44, 8); ctx.fill();
+    ctx.fillStyle = "#EEF3F6";
+    ctx.beginPath(); ctx.roundRect(bx, by, bw, 13, 6.5); ctx.fill();
+    const frac = Math.max(0, Math.min(1, scrub/0.8));
+    ctx.fillStyle = frac > 0.4 ? COL.rot : COL.mod;
+    ctx.beginPath(); ctx.roundRect(bx, by, bw*frac, 13, 6.5); ctx.fill();
+    labelText(ctx, "scrub meter — wheels fighting", bx, by - 7, COL.muted, "11px 'IBM Plex Mono', monospace");
+  }
+  c._redraw = draw;
+
+  function tick(){
+    const dt = 0.02;
+    bot.th += est.om * dt;
+    const [wx, wy] = rot2(est.vx, est.vy, bot.th);
+    bot.x += wx * dt;
+    bot.y += wy * dt;
+    wrap();
+    trace.push([bot.x, bot.y]);
+    if(trace.length > 900) trace = trace.filter((_, i) => i % 2 === 0);
+    draw();
+    anim = requestAnimationFrame(tick);
+  }
+  function update(){
+    document.getElementById("w4delOut").textContent = delEl.value + "°";
+    compute();
+    document.getElementById("w4rvx").textContent = est.vx.toFixed(2) + " m/s";
+    document.getElementById("w4rom").textContent = est.om.toFixed(2) + " rad/s";
+    document.getElementById("w4rscrub").textContent = scrub.toFixed(2) + " m/s";
+    draw();
+  }
+  delEl.addEventListener("input", update);
+  onVisible(c, () => { if(!anim) anim = requestAnimationFrame(tick); });
+  update();
+})();
+
+})();
+</script>
+</body>
+</html>

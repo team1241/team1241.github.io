@@ -16,10 +16,22 @@ GitHub Pages; lesson links are pasted into Linear docs for students.
 | `boxes-arrows-circles-block-diagrams.html` | Block diagram notation primer (signals, blocks, junctions, open/closed loop, disturbances) | Complete |
 | `close-the-loop-pid-control.html` | Feedback/PID control: bang-bang, P/I/D each with tuning exercises, full-PID tuning bay on a simulated elevator | Complete (intentionally excludes practice topics — see TODO) |
 | `push-first-feedforward-control.html` | Feedforward control for flywheels/arms/elevators, WPILib models, characterization/SysId | **Learning content complete — case problem still TODO** |
+| `four-wheels-one-motion-swerve-kinematics.html` | Forward/inverse kinematics: two-joint arm intro (FK = stacking joint changes, IK = computing possibilities), diff drive warm-up, rigid-body v + ω×r, swerve module states, desaturation, field-relative, skew + ChassisSpeeds.discretize, FK-as-least-squares/scrub | Complete |
+| `count-your-steps-odometry.html` | Odometry: pose, encoders vs ground truth, heading error × distance, full swerve odometry with drift/bumps/reset, pose-estimator hand-off | Complete |
 
-Reading order: block diagrams → PID feedback → feedforward → Kalman (the
-index numbers them 01–04 and each page's bottom "next lesson" card follows
-the same chain). Planned next: swerve drivetrain control, same format.
+Reading order: block diagrams → PID feedback → feedforward →
+kinematics/swerve → odometry → Kalman (the index numbers them 01–06 and each
+page's bottom "next lesson" card follows the same chain; Kalman is the
+current end-of-series card). **Standing rule: order lessons by complexity
+and feature stacking** — each page may assume everything earlier in the
+chain, and estimation (Kalman) stays after the drive lessons it builds on.
+Slot any new lesson at the point in the chain its prerequisites demand.
+
+Reference sources for the swerve arc (kinematics, odometry, and the future
+control-schemes lesson): the WPILib kinematics-and-odometry docs
+(docs.wpilib.org …/kinematics-and-odometry/intro-and-chassis-speeds.html and
+siblings) and the *Controls Engineering in FRC* textbook
+(github.com/calcmogul/controls-engineering-in-frc).
 
 ## Outstanding TODO
 
@@ -31,6 +43,12 @@ the same chain). Planned next: swerve drivetrain control, same format.
       integral windup / anti-windup, derivative filtering and
       pseudo-derivative (derivative-on-measurement, derivative kick), sensor
       noise, output saturation. Do not fold these into the intro PID lesson.
+- [ ] **Swerve control-schemes lesson** (module 3 of the swerve arc, after
+      kinematics and odometry) — the different control schemes for a swerve
+      drive. The user will specify the design when ready — **do not start it
+      unprompted, but keep reminding them it's pending** (mention it at the
+      start of any session that touches this repo's lessons). Use the same
+      reference sources as the rest of the swerve arc.
 
 ## Design system (do not deviate without asking)
 
@@ -48,6 +66,10 @@ the same chain). Planned next: swerve drivetrain control, same format.
     feedforward green, plant/measured ink.
   - PID lesson: setpoint violet (dashed), P orange, I green, D blue `#2076C7`
     (soft `#DFEBF8`) — the one lesson with a fourth concept color.
+  - Kinematics lesson: chassis motion violet, rotation orange, modules/wheels
+    green, robot ink.
+  - Odometry lesson: estimate violet (dead reckoning's color), gyro/heading
+    orange, wheels/encoders green, truth ink (dashed).
 - **Components**: `.widget` cards (head strip + body), `.readout` chips,
   `.toggle` pills, `.callout` left-border asides, `.diagram` panels for SVG
   block diagrams, `.eq` equation cards, `details.plots` collapsible plot panels.
