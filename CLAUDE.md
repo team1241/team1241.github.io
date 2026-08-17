@@ -56,7 +56,8 @@ the same chain). Planned next: swerve drivetrain control, same format.
 
 1. **Every equation gets a legend.** `.eq` card = equation line(s) + `.who`
    legend below a dashed divider, defining *every* symbol as a `<code>` chip
-   followed by plain-language meaning. Interpretive commentary goes in a
+   followed by plain-language meaning — one symbol per line (each definition
+   wrapped in a block-level `span.def`). Interpretive commentary goes in a
    trailing `.note` span, separate from the definitions.
 2. **Jargon is welcome but introduced** — bold the term, define it in plain
    words at first use, collect terms in a recap "pocket glossary" `.eq` block.

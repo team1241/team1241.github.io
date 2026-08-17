@@ -107,6 +107,7 @@ a:hover{color:#0A7A5B}
   font-size:13.5px;color:var(--muted);font-family:"Public Sans",sans-serif;
   white-space:normal;line-height:1.7;
 }
+.eq .who .def{display:block;padding:1.5px 0}
 .eq code{
   font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink);
   background:#EEF3F6;border:1px solid var(--line);border-radius:4px;padding:1px 6px;
@@ -455,7 +456,7 @@ a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15r
 
   <div class="eq">
     <div class="line">V = V<sub>ff</sub> + V<sub>fb</sub> = predict(r) + kP · (r − ω)</div>
-    <span class="who"><code>V</code> — total voltage sent to the motor · <code>V<sub>ff</sub></code> — the feedforward term: the model's prediction of what the setpoint requires, computed with no knowledge of the error · <code>V<sub>fb</sub></code> — the feedback term: a correction proportional to the error · <code>predict(r)</code> — the model function we build in Part 4 · <code>kP</code> — the proportional gain, volts per unit of error · <code>r</code> — the setpoint · <code>ω</code> — the measured output.<span class="note">Division of labor: feedforward carries the predictable ~95% of the effort; feedback mops up model imperfection, disturbances, and battery sag. With feedforward doing the lifting, the error stays tiny — so feedback can stay gentle.</span></span>
+    <span class="who"><span class="def"><code>V</code> — total voltage sent to the motor</span><span class="def"><code>V<sub>ff</sub></code> — the feedforward term: the model's prediction of what the setpoint requires, computed with no knowledge of the error</span><span class="def"><code>V<sub>fb</sub></code> — the feedback term: a correction proportional to the error</span><span class="def"><code>predict(r)</code> — the model function we build in Part 4</span><span class="def"><code>kP</code> — the proportional gain, volts per unit of error</span><span class="def"><code>r</code> — the setpoint</span><span class="def"><code>ω</code> — the measured output.</span><span class="note">Division of labor: feedforward carries the predictable ~95% of the effort; feedback mops up model imperfection, disturbances, and battery sag. With feedforward doing the lifting, the error stays tiny — so feedback can stay gentle.</span></span>
   </div>
 </section>
 
@@ -468,21 +469,21 @@ a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15r
 
   <div class="eq">
     <div class="line"><b>Flywheel</b> V = kS · sgn(v) + kV · v + kA · a</div>
-    <span class="who"><code>V</code> — the predicted voltage · <code>v</code> — the <em>desired</em> velocity (the setpoint, not the measurement — this is a prediction!) · <code>a</code> — the desired acceleration · <code>sgn(v)</code> — the sign function: +1 moving forward, −1 in reverse; friction always opposes motion, so kS flips with direction · <code>kS</code> — static friction voltage (volts) · <code>kV</code> — velocity gain (volts per unit velocity), the back-EMF tax rate · <code>kA</code> — acceleration gain (volts per unit acceleration).<span class="note">Cruising at constant speed? Then a = 0 and the last term vanishes — which is why kA can often be omitted for low-inertia mechanisms.</span></span>
+    <span class="who"><span class="def"><code>V</code> — the predicted voltage</span><span class="def"><code>v</code> — the <em>desired</em> velocity (the setpoint, not the measurement — this is a prediction!)</span><span class="def"><code>a</code> — the desired acceleration</span><span class="def"><code>sgn(v)</code> — the sign function: +1 moving forward, −1 in reverse; friction always opposes motion, so kS flips with direction</span><span class="def"><code>kS</code> — static friction voltage (volts)</span><span class="def"><code>kV</code> — velocity gain (volts per unit velocity), the back-EMF tax rate</span><span class="def"><code>kA</code> — acceleration gain (volts per unit acceleration).</span><span class="note">Cruising at constant speed? Then a = 0 and the last term vanishes — which is why kA can often be omitted for low-inertia mechanisms.</span></span>
   </div>
 
   <p>Elevators and arms are the same motor with one new bill: <strong>gravity</strong>, handled by a <strong>kG</strong> term. Watch <em>where the geometry shows up in the math</em>. An <strong>elevator</strong> hauls straight up — gravity pulls the same at every height, so kG is a constant:</p>
 
   <div class="eq">
     <div class="line"><b>Elevator</b> V = kG + kS · sgn(v) + kV · v + kA · a</div>
-    <span class="who"><code>kG</code> — the gravity voltage: the constant voltage that exactly holds the carriage against gravity, identical at every height · <code>v</code>, <code>a</code> — desired vertical velocity and acceleration · everything else as in the flywheel equation.<span class="note">Set v = 0 and a = 0: the prediction is V = kG. An elevator "holding still" is not off — it's quietly paying the gravity bill forever. Note kG has no sgn(): gravity always pulls the same way, whether you're moving up or down.</span></span>
+    <span class="who"><span class="def"><code>kG</code> — the gravity voltage: the constant voltage that exactly holds the carriage against gravity, identical at every height</span><span class="def"><code>v</code>, <code>a</code> — desired vertical velocity and acceleration</span><span class="def">everything else as in the flywheel equation.</span><span class="note">Set v = 0 and a = 0: the prediction is V = kG. An elevator "holding still" is not off — it's quietly paying the gravity bill forever. Note kG has no sgn(): gravity always pulls the same way, whether you're moving up or down.</span></span>
   </div>
 
   <p>An <strong>arm</strong> swings mass on a stick, so gravity's <em>leverage</em> changes with angle — brutal horizontal, zero straight up or down. The cosine captures exactly that:</p>
 
   <div class="eq">
     <div class="line"><b>Arm</b> V = kG · cos(θ) + kS · sgn(ω) + kV · ω + kA · α</div>
-    <span class="who"><code>θ</code> — the arm angle, measured with 0° = horizontal (that convention is what makes cosine the right shape) · <code>cos(θ)</code> — gravity's leverage: 1 at horizontal, 0 straight up or down · <code>kG</code> — the gravity voltage at the worst case, horizontal · <code>ω</code>, <code>α</code> — desired angular velocity and acceleration · <code>kS</code>, <code>kV</code>, <code>kA</code> — as before, now in angular units.<span class="note">This term is why an unpowered arm doesn't sag equally everywhere — and why a good arm controller applies kG·cos(θ) continuously, even when "holding still."</span></span>
+    <span class="who"><span class="def"><code>θ</code> — the arm angle, measured with 0° = horizontal (that convention is what makes cosine the right shape)</span><span class="def"><code>cos(θ)</code> — gravity's leverage: 1 at horizontal, 0 straight up or down</span><span class="def"><code>kG</code> — the gravity voltage at the worst case, horizontal</span><span class="def"><code>ω</code>, <code>α</code> — desired angular velocity and acceleration</span><span class="def"><code>kS</code>, <code>kV</code>, <code>kA</code> — as before, now in angular units.</span><span class="note">This term is why an unpowered arm doesn't sag equally everywhere — and why a good arm controller applies kG·cos(θ) continuously, even when "holding still."</span></span>
   </div>
 
   <p>Play with both gravity terms below — this is the part of the model you can <em>feel</em>.</p>
@@ -528,7 +529,7 @@ a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15r
 
   <div class="eq">
     <div class="line">V = kS + kV · v&nbsp;&nbsp;&nbsp;(steady state, moving forward)</div>
-    <span class="who"><code>V</code> — the voltage you applied · <code>v</code> — the steady velocity the mechanism settled at · <code>kS</code> — the y-intercept of this line · <code>kV</code> — its slope.<span class="note">This is y = b + m·x wearing a lab coat. Feed the mechanism a series of voltages, record the steady speed each produces, and the data points fall on a line. Fit the line, read off the intercept and slope, and you've characterized kS and kV.</span></span>
+    <span class="who"><span class="def"><code>V</code> — the voltage you applied</span><span class="def"><code>v</code> — the steady velocity the mechanism settled at</span><span class="def"><code>kS</code> — the y-intercept of this line</span><span class="def"><code>kV</code> — its slope.</span><span class="note">This is y = b + m·x wearing a lab coat. Feed the mechanism a series of voltages, record the steady speed each produces, and the data points fall on a line. Fit the line, read off the intercept and slope, and you've characterized kS and kV.</span></span>
   </div>
 
   <p>Run that experiment yourself. The widget below has a <strong>mystery flywheel</strong> — its true constants are hidden. Collect data, fit the line, and steal its secrets.</p>

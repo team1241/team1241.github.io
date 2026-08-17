@@ -115,6 +115,7 @@ a:hover{color:#B96317}
   font-size:13.5px;color:var(--muted);font-family:"Public Sans",sans-serif;
   white-space:normal;line-height:1.7;
 }
+.eq .who .def{display:block;padding:1.5px 0}
 .eq code{
   font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink);
   background:#EEF3F6;border:1px solid var(--line);border-radius:4px;padding:1px 6px;
@@ -359,7 +360,7 @@ a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15r
 
   <div class="eq">
     <div class="line"><b>P</b> V = kP · e</div>
-    <span class="who"><code>V</code> — motor voltage · <code>e</code> — the error, setpoint − measured height (meters here) · <code>kP</code> — the proportional gain, in volts per meter of error: how aggressively distance is converted into push.<span class="note">kP is a personality dial. Small kP: patient, gentle, slow. Big kP: eager, fast — and, past a point, so eager it flies through the target and has to come back. You are about to meet all three personalities.</span></span>
+    <span class="who"><span class="def"><code>V</code> — motor voltage</span><span class="def"><code>e</code> — the error, setpoint − measured height (meters here)</span><span class="def"><code>kP</code> — the proportional gain, in volts per meter of error: how aggressively distance is converted into push.</span><span class="note">kP is a personality dial. Small kP: patient, gentle, slow. Big kP: eager, fast — and, past a point, so eager it flies through the target and has to come back. You are about to meet all three personalities.</span></span>
   </div>
 
   <p>Think of it as tying the carriage to the target with a <strong>rubber band</strong>: the farther it strays, the harder it's pulled back. Tune the band's stiffness yourself:</p>
@@ -402,7 +403,7 @@ a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15r
 
   <div class="eq">
     <div class="line"><b>droop</b> e<sub>ss</sub> = V<sub>hold</sub> / kP</div>
-    <span class="who"><code>e<sub>ss</sub></code> — the <strong>steady-state error</strong>: the error left over once everything stops moving · <code>V<sub>hold</sub></code> — the constant voltage the load demands (gravity's 1.5 V here) · <code>kP</code> — the proportional gain.<span class="note">Bigger kP shrinks the droop but never erases it — and cranking kP for that reason buys you the ringing from experiment 3. Erasing it takes a new idea, and the new idea is memory.</span></span>
+    <span class="who"><span class="def"><code>e<sub>ss</sub></code> — the <strong>steady-state error</strong>: the error left over once everything stops moving</span><span class="def"><code>V<sub>hold</sub></code> — the constant voltage the load demands (gravity's 1.5 V here)</span><span class="def"><code>kP</code> — the proportional gain.</span><span class="note">Bigger kP shrinks the droop but never erases it — and cranking kP for that reason buys you the ringing from experiment 3. Erasing it takes a new idea, and the new idea is memory.</span></span>
   </div>
 </section>
 
@@ -414,7 +415,7 @@ a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15r
 
   <div class="eq">
     <div class="line"><b>I</b> V<sub>I</sub> = kI · ∫ e dt</div>
-    <span class="who"><code>V<sub>I</sub></code> — the integral term's share of the voltage · <code>∫ e dt</code> — the <strong>integral of error</strong>: the running total of error × time, in meter-seconds; think of it as the area under the error curve · <code>kI</code> — the integral gain, volts per meter-second of accumulated error.<span class="note">The key property: this sum only stops changing when e = 0. Any leftover droop keeps feeding it, so the push keeps growing until the droop is gone. It cannot rest until you're exactly on target.</span></span>
+    <span class="who"><span class="def"><code>V<sub>I</sub></code> — the integral term's share of the voltage</span><span class="def"><code>∫ e dt</code> — the <strong>integral of error</strong>: the running total of error × time, in meter-seconds; think of it as the area under the error curve</span><span class="def"><code>kI</code> — the integral gain, volts per meter-second of accumulated error.</span><span class="note">The key property: this sum only stops changing when e = 0. Any leftover droop keeps feeding it, so the push keeps growing until the droop is gone. It cannot rest until you're exactly on target.</span></span>
   </div>
 
   <p>Watch it erase the droop. The <span class="i-t">memory tank</span> next to the elevator shows the integral filling up — and notice what it holds once everything settles:</p>
@@ -466,7 +467,7 @@ a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15r
 
   <div class="eq">
     <div class="line"><b>D</b> V<sub>D</sub> = kD · de/dt</div>
-    <span class="who"><code>V<sub>D</sub></code> — the derivative term's share of the voltage · <code>de/dt</code> — the <strong>derivative of error</strong>: its rate of change, in meters per second; negative while you're closing in on the target · <code>kD</code> — the derivative gain, volts per (meter per second).<span class="note">Closing fast on the setpoint makes de/dt negative, so V_D pushes <em>against the motion</em> — a braking force that grows with approach speed. It behaves exactly like a shock absorber, which is why engineers call its effect <strong>damping</strong>.</span></span>
+    <span class="who"><span class="def"><code>V<sub>D</sub></code> — the derivative term's share of the voltage</span><span class="def"><code>de/dt</code> — the <strong>derivative of error</strong>: its rate of change, in meters per second; negative while you're closing in on the target</span><span class="def"><code>kD</code> — the derivative gain, volts per (meter per second).</span><span class="note">Closing fast on the setpoint makes de/dt negative, so V_D pushes <em>against the motion</em> — a braking force that grows with approach speed. It behaves exactly like a shock absorber, which is why engineers call its effect <strong>damping</strong>.</span></span>
   </div>
 
   <p>It's how you catch an egg: your hand gives way <em>based on the egg's speed</em>, not its position. Here's a deliberately over-eager P controller, plus the damper that civilizes it:</p>
@@ -515,7 +516,7 @@ a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15r
 
   <div class="eq">
     <div class="line"><b>PID</b> V = kP · e + kI · ∫ e dt + kD · de/dt</div>
-    <span class="who"><code>V</code> — total motor voltage · <code>e</code> — the error, r − y · <code>kP</code>, <code>kI</code>, <code>kD</code> — the three gains: the entire tuning of the controller lives in these three numbers.<span class="note">Any gain set to zero simply switches that term off — a "PD controller" or "PI controller" is just PID with a zero in it. Most FRC mechanisms run P or PD; I joins when a stubborn load refuses to let the error die.</span></span>
+    <span class="who"><span class="def"><code>V</code> — total motor voltage</span><span class="def"><code>e</code> — the error, r − y</span><span class="def"><code>kP</code>, <code>kI</code>, <code>kD</code> — the three gains: the entire tuning of the controller lives in these three numbers.</span><span class="note">Any gain set to zero simply switches that term off — a "PD controller" or "PI controller" is just PID with a zero in it. Most FRC mechanisms run P or PD; I joins when a stubborn load refuses to let the error die.</span></span>
   </div>
 
   <div class="diagram">
@@ -626,7 +627,7 @@ a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15r
   <div class="eq">
     <div class="line">pid = new PIDController(kP, kI, kD);</div>
     <div class="line">V = pid.calculate(measuredHeight, setpoint);</div>
-    <span class="who"><code>PIDController</code> — WPILib's implementation of everything on this page, run once per robot loop (every 20 ms) · <code>calculate(measurement, setpoint)</code> — computes the error internally and returns the summed P + I + D output · <code>kP</code>, <code>kI</code>, <code>kD</code> — the same three gains, in volts per unit of your sensor.<span class="note">Concepts and the math live in <a href="https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/introduction-to-pid.html">Introduction to PID</a>; the class itself in <a href="https://docs.wpilib.org/en/stable/docs/software/advanced-controls/controllers/pidcontroller.html">PID Control in WPILib</a>.</span></span>
+    <span class="who"><span class="def"><code>PIDController</code> — WPILib's implementation of everything on this page, run once per robot loop (every 20 ms)</span><span class="def"><code>calculate(measurement, setpoint)</code> — computes the error internally and returns the summed P + I + D output</span><span class="def"><code>kP</code>, <code>kI</code>, <code>kD</code> — the same three gains, in volts per unit of your sensor.</span><span class="note">Concepts and the math live in <a href="https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/introduction-to-pid.html">Introduction to PID</a>; the class itself in <a href="https://docs.wpilib.org/en/stable/docs/software/advanced-controls/controllers/pidcontroller.html">PID Control in WPILib</a>.</span></span>
   </div>
 </section>
 
