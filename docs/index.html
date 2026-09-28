@@ -1,130 +1,269 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Team 1241 — Resources</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
-<style>
-:root{
-  --paper:#F4F7F9;
-  --grid:#DCE6EC;
-  --panel:#FFFFFF;
-  --ink:#16283B;
-  --muted:#5B7186;
-  --line:#C7D5DE;
-  --accent:#0B8F6B;
-  --accent-soft:#DFF3EC;
-  --radius:10px;
-}
-*{box-sizing:border-box;margin:0;padding:0}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team 1241 — Resources</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=Public+Sans:wght@400;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F4F7F9;
+      --grid: #DCE6EC;
+      --panel: #FFFFFF;
+      --ink: #16283B;
+      --muted: #5B7186;
+      --line: #C7D5DE;
+      --accent: #0B8F6B;
+      --accent-soft: #DFF3EC;
+      --radius: 10px;
+    }
 
-body{
-  background:
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
-    var(--paper);
-  background-size:28px 28px, 28px 28px, auto;
-  color:var(--ink);
-  font-family:"Public Sans", system-ui, -apple-system, sans-serif;
-  font-size:17px;
-  line-height:1.65;
-}
-.wrap{max-width:860px;margin:0 auto;padding:64px 20px 96px}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
 
-header h1{
-  font-family:"Space Grotesk", sans-serif;
-  font-size:2.2rem;
-  line-height:1.2;
-}
-header p{
-  color:var(--muted);
-  margin-top:8px;
-  font-family:"IBM Plex Mono", monospace;
-  font-size:0.95rem;
-}
+    body {
+      background:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+        var(--paper);
+      background-size: 28px 28px, 28px 28px, auto;
+      color: var(--ink);
+      font-family: "Public Sans", system-ui, -apple-system, sans-serif;
+      font-size: 17px;
+      line-height: 1.65;
+    }
 
-ul.pages{list-style:none;margin-top:40px;display:grid;gap:16px}
-ul.pages a{
-  display:block;
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  padding:20px 24px;
-  text-decoration:none;
-  color:inherit;
-  transition:border-color .15s ease, background .15s ease;
-}
-ul.pages a:hover{border-color:var(--accent);background:var(--accent-soft)}
-ul.pages .num{
-  display:block;
-  font-family:"IBM Plex Mono", monospace;
-  font-size:12px;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  color:var(--muted);
-  margin-bottom:6px;
-}
-ul.pages .title{
-  font-family:"Space Grotesk", sans-serif;
-  font-weight:700;
-  font-size:1.15rem;
-}
-ul.pages .desc{color:var(--muted);margin-top:4px;font-size:0.95rem}
-</style>
+    .wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 64px 20px 96px
+    }
+
+    header h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 2.2rem;
+      line-height: 1.2;
+    }
+
+    header p {
+      color: var(--muted);
+      margin-top: 8px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.95rem;
+    }
+
+    .section-title {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 1.5rem;
+      margin-top: 56px;
+      margin-bottom: -16px;
+      color: var(--ink);
+    }
+
+    ul.pages {
+      list-style: none;
+      margin-top: 40px;
+      display: grid;
+      gap: 16px
+    }
+
+    ul.pages a {
+      display: block;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color .15s ease, background .15s ease, transform .15s ease;
+    }
+
+    ul.pages a:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      transform: scale(1.012)
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      ul.pages a { transition: border-color .15s ease, background .15s ease }
+      ul.pages a:hover { transform: none }
+    }
+
+    ul.pages .num {
+      display: block;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    ul.pages .title {
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+
+    ul.pages .desc {
+      color: var(--muted);
+      margin-top: 4px;
+      font-size: 0.95rem
+    }
+
+    .lesson-search{margin-top:36px;padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 10px 30px -20px rgba(22,40,59,.35)}
+    .lesson-search label{display:block;margin-bottom:8px;font:600 13px "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase}
+    .lesson-search input{width:100%;padding:13px 15px;border:1.5px solid var(--line);border-radius:8px;color:var(--ink);background:#FBFDFE;font:17px "Public Sans",sans-serif;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease,transform .15s ease}
+    .lesson-search input:hover{border-color:var(--accent);background:#fff;box-shadow:0 7px 18px -12px rgba(11,143,107,.7);transform:translateY(-1px)}
+    .lesson-search input:focus{outline:3px solid var(--accent-soft);border-color:var(--accent)}
+    .search-status{min-height:24px;margin-top:9px;color:var(--muted);font:12.5px "IBM Plex Mono",monospace}
+    .search-results{display:grid;gap:10px;margin-top:10px}
+    .search-result{display:block;padding:14px 16px;border:1px solid var(--line);border-radius:8px;color:inherit;text-decoration:none;background:#FBFDFE}
+    .search-result:hover{border-color:var(--accent);background:var(--accent-soft)}
+    .result-head{display:flex;justify-content:space-between;gap:12px;font-family:"Space Grotesk",sans-serif;font-weight:700}
+    .result-count{flex:none;color:var(--accent);font:600 11px "IBM Plex Mono",monospace;text-transform:uppercase}
+    .search-snippet{margin-top:6px;color:var(--muted);font-size:14px;line-height:1.5}
+    .search-snippet mark{padding:0 .1em;border-radius:2px;background:#FFE58A;color:var(--ink)}
+    @media (prefers-reduced-motion: reduce) {
+      .lesson-search input{transition:border-color .15s ease,background .15s ease,box-shadow .15s ease}
+      .lesson-search input:hover{transform:none}
+    }
+  </style>
 </head>
-<body>
-<div class="wrap">
-  <header>
-    <h1>Team 1241 — Resources</h1>
-    <p>FRC Team 1241 · notes &amp; interactive lessons</p>
-  </header>
 
-  <ul class="pages">
-    <li>
-      <a href="boxes-arrows-circles-block-diagrams.html">
-        <span class="num">Lesson 01 · start here</span>
-        <span class="title">Boxes, Arrows, Circles — Reading Block Diagrams</span>
-        <span class="desc">The three-symbol picture language every control system is drawn in — signals, blocks, summing junctions, and open vs. closed loops.</span>
-      </a>
-    </li>
-    <li>
-      <a href="close-the-loop-pid-control.html">
-        <span class="num">Lesson 02</span>
-        <span class="title">Close the Loop — Feedback &amp; PID Control</span>
-        <span class="desc">Measure, compare, correct: tune P, I, and D yourself on a live simulated elevator and learn what each term is actually for.</span>
-      </a>
-    </li>
-    <li>
-      <a href="push-first-feedforward-control.html">
-        <span class="num">Lesson 03</span>
-        <span class="title">Push First, Correct Later — Feedforward Control</span>
-        <span class="desc">Model the mechanism, predict the push it needs, and command it before any error exists — flywheels, arms, elevators, and WPILib's kS·kV·kA.</span>
-      </a>
-    </li>
-    <li>
-      <a href="four-wheels-one-motion-swerve-kinematics.html">
-        <span class="num">Lesson 04</span>
-        <span class="title">Four Wheels, One Motion — Kinematics &amp; Swerve</span>
-        <span class="desc">The geometry dictionary between "the business end goes here" and "each joint does this" — forward and inverse kinematics, from a two-joint arm to a full swerve model, skew and all.</span>
-      </a>
-    </li>
-    <li>
-      <a href="count-your-steps-odometry.html">
-        <span class="num">Lesson 05</span>
-        <span class="title">Count Your Steps — Odometry</span>
-        <span class="desc">Tracking pose by adding up every wheel step — encoders, gyros, drift, and why the bookkeeping eventually needs outside help.</span>
-      </a>
-    </li>
-    <li>
-      <a href="where-am-i-kalman-filters.html">
-        <span class="num">Lesson 06</span>
-        <span class="title">Where Am I? — Sensor Fusion &amp; Kalman Filters</span>
-        <span class="desc">How a robot combines dead reckoning and noisy absolute measurements into one confident position estimate.</span>
-      </a>
-    </li>
-  </ul>
-</div>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Team 1241 — Resources</h1>
+      <p>FRC Team 1241 · notes &amp; interactive lessons</p>
+    </header>
+
+    <div class="lesson-search" role="search">
+      <label for="lessonSearch">Search every lesson</label>
+      <input id="lessonSearch" type="search" placeholder="Try: crosstalk, voltage, odometry, PID…" autocomplete="off">
+      <div class="search-status" id="searchStatus" aria-live="polite">Type a keyword to search lesson text.</div>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+
+    <h2 class="section-title">Programming &amp; Controls</h2>
+    <ul class="pages">
+      <li>
+        <a href="boxes-arrows-circles-block-diagrams.html">
+          <span class="num">Lesson 01 · start here</span>
+          <span class="title">Boxes, Arrows, Circles — Reading Block Diagrams</span>
+          <span class="desc">The three-symbol picture language every control system is drawn in — signals, blocks,
+            summing junctions, and open vs. closed loops.</span>
+        </a>
+      </li>
+      <li>
+        <a href="close-the-loop-pid-control.html">
+          <span class="num">Lesson 02</span>
+          <span class="title">Close the Loop — Feedback &amp; PID Control</span>
+          <span class="desc">Measure, compare, correct: tune P, I, and D yourself on a live simulated elevator and learn
+            what each term is actually for.</span>
+        </a>
+      </li>
+      <li>
+        <a href="push-first-feedforward-control.html">
+          <span class="num">Lesson 03</span>
+          <span class="title">Push First, Correct Later — Feedforward Control</span>
+          <span class="desc">Model the mechanism, predict the push it needs, and command it before any error exists —
+            flywheels, arms, elevators, and WPILib's kS·kV·kA.</span>
+        </a>
+      </li>
+      <li>
+        <a href="four-wheels-one-motion-swerve-kinematics.html">
+          <span class="num">Lesson 04</span>
+          <span class="title">Four Wheels, One Motion — Kinematics &amp; Swerve</span>
+          <span class="desc">The geometry dictionary between "the business end goes here" and "each joint does this" —
+            forward and inverse kinematics, from a two-joint arm to a full swerve model, skew and all.</span>
+        </a>
+      </li>
+      <li>
+        <a href="count-your-steps-odometry.html">
+          <span class="num">Lesson 05</span>
+          <span class="title">Count Your Steps — Odometry</span>
+          <span class="desc">Tracking pose by adding up every wheel step — encoders, gyros, drift, and why the
+            bookkeeping eventually needs outside help.</span>
+        </a>
+      </li>
+      <li>
+        <a href="where-am-i-kalman-filters.html">
+          <span class="num">Lesson 06</span>
+          <span class="title">Where Am I? — Sensor Fusion &amp; Kalman Filters</span>
+          <span class="desc">How a robot combines dead reckoning and noisy absolute measurements into one confident
+            position estimate.</span>
+        </a>
+      </li>
+    </ul>
+
+    <h2 class="section-title">Electrical</h2>
+    <ul class="pages">
+      <li>
+        <a href="basics-of-electricity.html">
+          <span class="num">Lesson 07</span>
+          <span class="title">Basics of Electricity</span>
+          <span class="desc">A primer on volts, amps, resistance, Ohm's Law, and how electrical concepts relate to your
+            robot's performance—with live circuits for flow, parallel loads, and battery sag.</span>
+        </a>
+      </li>
+      <li>
+        <a href="feeding-the-kraken-electrical.html">
+          <span class="num">Lesson 08</span>
+          <span class="title">Feed the Kraken — X60 &amp; X44 Electrical</span>
+          <span class="desc">Power distribution, terminal torque, wire gauge, current limits, and the heat hiding
+            inside every hard-working Kraken.</span>
+        </a>
+      </li>
+      <li>
+        <a href="crimping-cat6-ethernet.html">
+          <span class="num">Lesson 09</span>
+          <span class="title">Eight Wires, One Link — Crimping Cat 6 Ethernet</span>
+          <span class="desc">Prepare, arrange, crimp, and test reliable network cables—then learn when a mirrored
+            wiring mistake can be salvaged without sacrificing the twisted pairs.</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+  <script>
+    (function () {
+      "use strict";
+      const input=document.getElementById("lessonSearch"),status=document.getElementById("searchStatus"),results=document.getElementById("searchResults");
+      const cards=[...document.querySelectorAll("ul.pages a")].map((link,order)=>({href:link.getAttribute("href"),title:link.querySelector(".title").textContent.trim(),order}));
+      let lessons=null,loading=null,timer=0;
+      function loadLessons(){
+        if(lessons)return Promise.resolve(lessons);if(loading)return loading;
+        status.textContent="Loading lesson text…";
+        loading=Promise.all(cards.map(async card=>{const response=await fetch(card.href);if(!response.ok)throw new Error("Could not load "+card.href);const doc=new DOMParser().parseFromString(await response.text(),"text/html");const blocks=[...doc.querySelectorAll("h1,h2,p,.callout,.hint,.cap,.def")].map(node=>node.textContent.replace(/\s+/g," ").trim()).filter(Boolean);return{...card,blocks}})).then(data=>lessons=data);
+        return loading;
+      }
+      function snippet(text,query){
+        const fragment=document.createDocumentFragment(),needle=query.toLocaleLowerCase(),first=text.toLocaleLowerCase().indexOf(needle),start=Math.max(0,first-70),end=Math.min(text.length,first+query.length+115),excerpt=(start?"…":"")+text.slice(start,end)+(end<text.length?"…":""),lower=excerpt.toLocaleLowerCase();
+        let cursor=0,found=lower.indexOf(needle);
+        while(found!==-1){fragment.append(excerpt.slice(cursor,found));const mark=document.createElement("mark");mark.textContent=excerpt.slice(found,found+query.length);fragment.append(mark);cursor=found+query.length;found=lower.indexOf(needle,cursor)}
+        fragment.append(excerpt.slice(cursor));return fragment;
+      }
+      async function search(){
+        const query=input.value.trim();results.replaceChildren();
+        if(query.length<2){status.textContent=query?"Type at least two characters.":"Type a keyword to search lesson text.";return}
+        try{
+          const data=await loadLessons();if(input.value.trim()!==query)return;const needle=query.toLocaleLowerCase();
+          const found=data.map(lesson=>{let count=0;const matching=[];lesson.blocks.forEach(block=>{const lower=block.toLocaleLowerCase();let at=lower.indexOf(needle);if(at!==-1)matching.push(block);while(at!==-1){count++;at=lower.indexOf(needle,at+needle.length)}});return{...lesson,count,matching}}).filter(lesson=>lesson.count).sort((a,b)=>b.count-a.count||a.order-b.order);
+          status.textContent=found.length?found.length+" lesson"+(found.length===1?"":"s")+" contain “"+query+"”. Select one to see every match.":"No lesson contains “"+query+"”.";
+          found.forEach(lesson=>{const link=document.createElement("a");link.className="search-result";link.href=lesson.href+"?search="+encodeURIComponent(query);const head=document.createElement("div");head.className="result-head";const title=document.createElement("span");title.textContent=lesson.title;const count=document.createElement("span");count.className="result-count";count.textContent=lesson.count+" match"+(lesson.count===1?"":"es");head.append(title,count);link.append(head);lesson.matching.slice(0,2).forEach(block=>{const line=document.createElement("div");line.className="search-snippet";line.append(snippet(block,query));link.append(line)});results.append(link)});
+        }catch(error){status.textContent="Lesson search could not load. Refresh the page and try again."}
+      }
+      input.addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(search,140)});
+      input.addEventListener("focus",loadLessons,{once:true});
+    })();
+  </script>
 </body>
+
 </html>

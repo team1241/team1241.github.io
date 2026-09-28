@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Basics of Electricity</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=Public+Sans:wght@400;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F4F7F9;
+      --grid: #DCE6EC;
+      --panel: #FFFFFF;
+      --ink: #16283B;
+      --muted: #5B7186;
+      --line: #C7D5DE;
+      --ff: #0B8F6B;
+      --fb: #E07B1F;
+      --sp: #7A4FD0;
+      --ff-soft: #DFF3EC;
+      --fb-soft: #FBEEDD;
+      --sp-soft: #EFE8FB;
+      --radius: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto
+      }
+    }
+
+    body {
+      background:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+        var(--paper);
+      background-size: 28px 28px, 28px 28px, auto;
+      color: var(--ink);
+      font-family: "Public Sans", system-ui, -apple-system, sans-serif;
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    .wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 20px 96px
+    }
+
+    header {
+      padding: 72px 0 40px;
+      position: relative
+    }
+
+    a.home {
+      display: inline-block;
+      margin-bottom: 22px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--ink);
+      text-decoration: none;
+      background: var(--panel);
+      border: 1.5px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 16px;
+      transition: border-color .15s ease, background .15s ease
+    }
+
+    a.home:hover {
+      border-color: var(--ff);
+      background: var(--ff-soft)
+    }
+
+    .eyebrow {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 13px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px
+    }
+
+    h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 700;
+      font-size: clamp(38px, 7vw, 62px);
+      line-height: 1.05;
+      letter-spacing: -0.02em
+    }
+
+    h1 .q {
+      color: var(--ff)
+    }
+
+    .sub {
+      margin-top: 18px;
+      max-width: 56ch;
+      color: var(--muted);
+      font-size: 19px
+    }
+
+    section {
+      margin-top: 64px
+    }
+
+    h2 {
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 700;
+      font-size: clamp(26px, 4.4vw, 34px);
+      letter-spacing: -0.015em;
+      line-height: 1.15
+    }
+
+    .step {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      margin-bottom: 8px
+    }
+
+    section p {
+      margin-top: 16px;
+      max-width: 64ch
+    }
+
+    strong {
+      font-weight: 600
+    }
+
+    .diagram {
+      margin-top: 22px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px 18px 8px
+    }
+
+    .diagram svg {
+      width: 100%;
+      height: auto;
+      display: block
+    }
+
+    .diagram .cap {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12.5px;
+      color: var(--muted);
+      padding: 8px 4px 8px;
+      line-height: 1.6
+    }
+
+    .ff-t { color: var(--ff); font-weight: 600 }
+    .fb-t { color: var(--fb); font-weight: 600 }
+    .sp-t { color: var(--sp); font-weight: 600 }
+
+    .callout {
+      margin-top: 22px;
+      padding: 16px 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--ff);
+      border-radius: 8px;
+      max-width: 64ch
+    }
+
+    .callout.orange { border-left-color: var(--fb) }
+
+    .eq {
+      margin-top: 18px;
+      padding: 16px 20px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      max-width: 64ch;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 15px
+    }
+
+    .eq .line { padding: 3px 0 }
+    .eq .line b { color: var(--ff); margin-right: 6px }
+    .eq .who { display:block; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); color:var(--muted); font:13.5px/1.7 "Public Sans",sans-serif }
+    .eq .def { display:block; padding:1.5px 0 }
+    .eq .note { display:block; margin-top:8px }
+    .eq code { font:12px "IBM Plex Mono",monospace; color:var(--ink); background:#EEF3F6; border:1px solid var(--line); border-radius:4px; padding:1px 6px }
+
+    .widget {
+      margin-top: 26px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 1px 0 rgba(22,40,59,.05), 0 10px 30px -18px rgba(22,40,59,.25);
+      overflow: hidden
+    }
+
+    .widget-head { display:flex; justify-content:space-between; gap:12px; padding:14px 18px; border-bottom:1px solid var(--line); font:13px "IBM Plex Mono",monospace }
+    .widget-head .name { font-weight:600; letter-spacing:.06em; text-transform:uppercase }
+    .widget-head .tag { color:var(--muted) }
+    .widget-body { padding:18px }
+    canvas { display:block; width:100%; border:1px solid var(--line); border-radius:8px; background:#FBFDFE }
+    .controls { display:flex; flex-wrap:wrap; gap:14px 26px; margin-top:16px; align-items:flex-end }
+    .control { min-width:170px; flex:1 }
+    .control label { display:flex; justify-content:space-between; gap:10px; margin-bottom:6px; color:var(--muted); font:12.5px "IBM Plex Mono",monospace }
+    .control output { color:var(--ink); font-weight:600 }
+    input[type=range] { width:100%; accent-color:var(--ink); cursor:pointer }
+    button { font:500 15px "Space Grotesk",sans-serif; background:var(--ink); color:#fff; border:0; border-radius:8px; padding:10px 18px; cursor:pointer }
+    button:hover { background:#233C57 }
+    button:focus-visible,input:focus-visible { outline:3px solid var(--ff); outline-offset:2px }
+    .toggles { display:flex; gap:8px; flex-wrap:wrap }
+    .toggle { font:600 12.5px "IBM Plex Mono",monospace; border:1.5px solid var(--line); background:#fff; color:var(--muted); border-radius:999px; padding:7px 14px }
+    .toggle[aria-pressed=true] { color:#fff; background:var(--ff); border-color:var(--ff) }
+    .readouts { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px }
+    .readout { flex:1; min-width:130px; padding:10px 14px; border:1px solid var(--line); border-radius:8px; background:#FBFDFE; font-family:"IBM Plex Mono",monospace }
+    .readout .k { font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted) }
+    .readout .v { font-size:20px; font-weight:600; margin-top:2px }
+    .readout.r-ff { background:var(--ff-soft) } .readout.r-ff .v { color:var(--ff) }
+    .readout.r-fb { background:var(--fb-soft) } .readout.r-fb .v { color:var(--fb) }
+    .readout.r-sp { background:var(--sp-soft) } .readout.r-sp .v { color:var(--sp) }
+    .hint { margin-top:12px; font-size:14.5px; color:var(--muted); max-width:64ch }
+
+    a.next {
+      display: block;
+      margin-top: 56px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      color: inherit;
+      text-decoration: none;
+      transition: border-color .15s ease, background .15s ease
+    }
+
+    a.next:hover { border-color: var(--ff); background: var(--ff-soft) }
+    a.next .k { display:block; font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:6px }
+    a.next .t { font-family:"Space Grotesk",sans-serif; font-weight:700; font-size:1.15rem }
+    .footer { margin-top:80px; padding-top:24px; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px; font-family:"IBM Plex Mono",monospace }
+    @media(max-width:560px) { body{font-size:16px} .widget-head{flex-direction:column} }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <header>
+      <a class="home" href="index.html">← All lessons</a>
+      <div class="eyebrow">Electrical foundations · power · measurement</div>
+      <h1>Basics of <span class="q">Electricity</span>.</h1>
+      <p class="sub">Before you write code or assemble a chassis, you need power. This is a primer on volts, amps,
+        resistance, and how electricity powers the robot.</p>
+    </header>
+
+    <section>
+      <div class="step">Part 1 / The Core Concepts</div>
+      <h2>Volts, Amps, and Resistance</h2>
+      <p>To understand electricity, it helps to imagine water flowing through pipes.</p>
+      <p><strong>Voltage (Volts)</strong> is the water pressure. It's the force that pushes electricity through the
+        circuit. In FRC, your main battery provides about 12 Volts when fully charged. Higher voltage means a stronger
+        push.</p>
+      <p><strong>Current (Amps)</strong> is the amount of water flowing through the pipe. It's the rate of electrical
+        flow. High-power mechanisms like swerve drive motors draw a lot of current (many amps) to generate torque.</p>
+      <p><strong>Resistance (Ohms)</strong> is the size of the pipe. A thinner pipe restricts flow (higher resistance),
+        while a thicker pipe lets it flow easily (lower resistance). Bad crimps or thin wires create resistance, which
+        limits current and wastes energy as heat.</p>
+
+      <div class="widget">
+        <div class="widget-head"><span class="name">Widget 01 — Push, path, flow</span><span class="tag">voltage · resistance · current</span></div>
+        <div class="widget-body">
+          <canvas id="c1" height="300"></canvas>
+          <div class="controls">
+            <div class="control"><label><span>Battery voltage (push)</span><output id="w1vOut">6 V</output></label><input id="w1v" type="range" min="1" max="12" value="6" step="1" aria-label="Battery voltage"></div>
+            <div class="control"><label><span>Resistance (opposition)</span><output id="w1rOut">3.0 Ω</output></label><input id="w1r" type="range" min="5" max="80" value="30" step="5" aria-label="Circuit resistance"></div>
+          </div>
+          <div class="readouts">
+            <div class="readout r-sp"><div class="k">Voltage · the push</div><div class="v" id="w1rv">6 V</div></div>
+            <div class="readout r-fb"><div class="k">Resistance · the squeeze</div><div class="v" id="w1rr">3.0 Ω</div></div>
+            <div class="readout r-ff"><div class="k">Current · the result</div><div class="v" id="w1ri">2.0 A</div></div>
+          </div>
+          <p class="hint"><strong>Try 1:</strong> Keep resistance still and raise voltage—the charges move around the loop faster. <strong>Try 2:</strong> Keep voltage still and raise resistance—the narrow section fights the flow, so current falls. Current is the outcome of push meeting a path.</p>
+        </div>
+      </div>
+
+      <div class="callout"><strong>Where the water analogy stops:</strong> wires are already full of movable charge. The battery does not have to send one electron all the way to the motor; its electric field pushes charges throughout the circuit, more like pushing one end of an already-full tube of marbles.</div>
+    </section>
+
+    <section>
+      <div class="step">Part 2 / The Relationship</div>
+      <h2>Ohm's Law: V = I × R</h2>
+      <p>Voltage (V), Current (I), and Resistance (R) are mathematically linked by Ohm's Law. It states that the voltage
+        required to push current through a circuit equals the current multiplied by the resistance.</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 400 120" role="img" aria-label="Ohm's Law Triangle">
+          <path d="M200 10 L280 110 L120 110 Z" fill="none" stroke="var(--ink)" stroke-width="2" />
+          <line x1="160" y1="60" x2="240" y2="60" stroke="var(--ink)" stroke-width="2" />
+          <line x1="200" y1="60" x2="200" y2="110" stroke="var(--ink)" stroke-width="2" />
+          <text x="200" y="45" font-family="'Space Grotesk', sans-serif" font-size="24" font-weight="700"
+            fill="var(--fb)" text-anchor="middle">V</text>
+          <text x="160" y="95" font-family="'Space Grotesk', sans-serif" font-size="24" font-weight="700"
+            fill="var(--ff)" text-anchor="middle">I</text>
+          <text x="240" y="95" font-family="'Space Grotesk', sans-serif" font-size="24" font-weight="700"
+            fill="var(--sp)" text-anchor="middle">R</text>
+        </svg>
+        <div class="cap"><strong>The Ohm's Law Triangle.</strong> Cover the value you want to find. V = I × R, I = V ÷
+          R, and R = V ÷ I.</div>
+      </div>
+
+      <div class="eq">
+        <div class="line"><b>V</b> = I × R</div>
+        <div class="line"><b>I</b> = V ÷ R</div>
+        <div class="line"><b>R</b> = V ÷ I</div>
+        <span class="who">
+          <span class="def"><code>V</code> voltage difference, measured in volts (V)</span>
+          <span class="def"><code>I</code> current, measured in amperes or amps (A)</span>
+          <span class="def"><code>R</code> resistance, measured in ohms (Ω)</span>
+          <span class="note">The three forms are the same relationship rearranged. Change any two values and the third is determined.</span>
+        </span>
+      </div>
+
+      <p>If resistance stays the same, pushing harder (more volts) creates more flow (more amps). If you need more amps
+        to a motor, you apply more voltage (or reduce resistance by using proper wiring).</p>
+    </section>
+
+    <section>
+      <div class="step">Part 3 / How We Measure</div>
+      <h2>Multimeters and Logging</h2>
+      <p>To measure these on a robot, we use different tools:</p>
+      <p><strong>Measuring Voltage:</strong> We measure voltage <em>across</em> a component (in parallel) using a
+        multimeter. The RoboRIO and Power Distribution Panel (PDP/PDH) also constantly log the total battery voltage so
+        you can see if your battery is dying.</p>
+      <p><strong>Measuring Current:</strong> We measure current flowing <em>through</em> a wire (in series or via a
+        clamp meter). Modern FRC components like the PDH and smart motor controllers (like Spark MAX or Talon FX) have
+        built-in current sensors. You can check the dashboard to see exactly how many amps each motor is drawing.</p>
+      <p><strong>Measuring Resistance:</strong> Measured with a multimeter while the circuit is powered OFF. You can use
+        this to check if a wire has a break in it (infinite resistance) or a good connection (near zero resistance).</p>
+
+      <div class="widget">
+        <div class="widget-head"><span class="name">Widget 02 — Series or parallel?</span><span class="tag">how robot loads connect</span></div>
+        <div class="widget-body">
+          <div class="toggles"><button id="w2parallel" class="toggle" aria-pressed="true">Parallel</button><button id="w2series" class="toggle" aria-pressed="false">Series</button></div>
+          <canvas id="c2" height="300" style="margin-top:16px"></canvas>
+          <div class="controls">
+            <div class="control"><label><span>Identical loads</span><output id="w2nOut">3</output></label><input id="w2n" type="range" min="1" max="4" value="3" step="1" aria-label="Number of identical loads"></div>
+            <div class="control"><label><span>Resistance per load</span><output id="w2rOut">4 Ω</output></label><input id="w2r" type="range" min="2" max="12" value="4" step="1" aria-label="Resistance per load"></div>
+          </div>
+          <div class="readouts">
+            <div class="readout r-sp"><div class="k">Voltage per load</div><div class="v" id="w2volts">12.0 V</div></div>
+            <div class="readout r-ff"><div class="k">Total current</div><div class="v" id="w2amps">9.0 A</div></div>
+            <div class="readout r-fb"><div class="k">Equivalent resistance</div><div class="v" id="w2req">1.33 Ω</div></div>
+          </div>
+          <p class="hint"><strong>Try 1:</strong> Add loads in parallel: each still gets the full 12 V, but total current rises because the battery has more paths to feed. <strong>Try 2:</strong> Switch to series: one path forces the loads to share the 12 V. FRC power-distribution branches are parallel so one mechanism does not steal another's voltage.</p>
+        </div>
+      </div>
+
+      <div class="callout orange"><strong>Meter safety:</strong> voltage is measured across a component; current is measured through the circuit. Putting a meter in current mode directly across a battery creates a near-short circuit. Resistance mode supplies its own tiny test signal, so only use it on an unpowered circuit.</div>
+    </section>
+
+    <section>
+      <div class="step">Part 4 / The Power Source</div>
+      <h2>Battery Behavior &amp; Internal Resistance</h2>
+      <p>Your robot runs on a 12V Lead-Acid battery. However, batteries are not perfect voltage sources. Inside the
+        battery itself, there is a small amount of <strong>internal resistance</strong>.</p>
+      <p>Because of Ohm's Law, when you pull a massive amount of current (Amps) out of the battery, that internal
+        resistance causes a voltage drop <em>inside</em> the battery before the electricity even reaches your RoboRIO.
+        This means the 12V battery might only output 8V or 9V while under heavy load (like a pushing match or sudden
+        acceleration).</p>
+      <p>As the battery discharges over a match, its baseline voltage drops, and its internal resistance
+        <em>increases</em>, making this voltage drop even more severe. This is why you must swap to a fresh battery
+        before every match.</p>
+
+      <div class="widget">
+        <div class="widget-head"><span class="name">Widget 03 — The battery under load</span><span class="tag">voltage sag · wasted heat</span></div>
+        <div class="widget-body">
+          <canvas id="c3" height="270"></canvas>
+          <div class="controls">
+            <div class="control"><label><span>Robot current</span><output id="w3iOut">120 A</output></label><input id="w3i" type="range" min="0" max="300" value="120" step="10" aria-label="Total robot current"></div>
+            <div class="control"><label><span>Battery condition</span><output id="w3bOut">healthy</output></label><input id="w3b" type="range" min="10" max="35" value="18" step="1" aria-label="Battery internal resistance"></div>
+          </div>
+          <div class="readouts">
+            <div class="readout r-sp"><div class="k">Open-circuit voltage</div><div class="v">12.5 V</div></div>
+            <div class="readout r-ff"><div class="k">Voltage at the robot</div><div class="v" id="w3volts">10.3 V</div></div>
+            <div class="readout r-fb"><div class="k">Heat inside battery</div><div class="v" id="w3heat">259 W</div></div>
+          </div>
+          <p class="hint"><strong>Try 1:</strong> Raise robot current and watch usable voltage shrink. <strong>Try 2:</strong> Make the battery condition worse—the same current now causes more sag and heat. <strong>Try 3:</strong> Set current to zero: hidden resistance costs almost nothing until current flows.</p>
+        </div>
+      </div>
+
+      <div class="eq">
+        <div class="line"><b>V<sub>robot</sub></b> = V<sub>open</sub> − I × R<sub>internal</sub></div>
+        <div class="line"><b>P<sub>heat</sub></b> = I² × R<sub>internal</sub></div>
+        <span class="who">
+          <span class="def"><code>V_robot</code> voltage available to the robot while current is flowing</span>
+          <span class="def"><code>V_open</code> battery voltage with almost no load</span>
+          <span class="def"><code>I</code> total current drawn by the robot</span>
+          <span class="def"><code>R_internal</code> effective resistance hidden inside the battery and main connections</span>
+          <span class="def"><code>P_heat</code> power wasted as heat before it reaches the robot</span>
+          <span class="note">The widget is a teaching model. A real battery's voltage and resistance change with charge, temperature, age, and recent load.</span>
+        </span>
+      </div>
+    </section>
+
+    <section>
+      <div class="step">Part 5 / Effect on the Robot</div>
+      <h2>Why it matters on the field</h2>
+      <p>Every mechanism on your robot turns electrical power into mechanical power. Power (Watts) is simply Volts
+        multiplied by Amps (P = V × I).</p>
+      <div class="eq">
+        <div class="line"><b>P</b> = V × I</div>
+        <span class="who">
+          <span class="def"><code>P</code> electrical power, measured in watts (W)</span>
+          <span class="def"><code>V</code> voltage across the device</span>
+          <span class="def"><code>I</code> current through the device</span>
+          <span class="note">Power is the rate of doing work. A motor needs both push and flow to deliver serious mechanical output.</span>
+        </span>
+      </div>
+      <p>When multiple motors draw high current at once (like accelerating a heavy chassis), the total current can
+        exceed what the battery can instantly provide. This causes the battery voltage to "droop" or drop temporarily
+        (from 12V down to maybe 8V or 9V). If the voltage drops too low (around 6.5V), the RoboRIO will protect itself
+        and reboot—this is called a <strong>brownout</strong>.</p>
+      <p>Understanding these basics helps you prevent brownouts by using current limits in code, wiring your robot
+        cleanly to minimize resistance, and ensuring you always hit the field with a fully charged battery.</p>
+    </section>
+
+    <a class="next" href="feeding-the-kraken-electrical.html">
+      <span class="k">Next lesson · apply the foundations</span>
+      <span class="t">Feed the Kraken — X60 &amp; X44 Electrical →</span>
+    </a>
+
+    <div class="footer">These widgets calculate real circuit relationships, not canned animations. The next lesson turns them into hands-on wiring, torque, and thermal checks.</div>
+
+  </div>
+  <script>
+    (function () {
+      "use strict";
+      const COL = { ink: "#16283B", muted: "#5B7186", line: "#C7D5DE", green: "#0B8F6B", orange: "#E07B1F", violet: "#7A4FD0", paper: "#FBFDFE", red: "#C53B35" };
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      function setupCanvas(id, height) {
+        const c = document.getElementById(id), ctx = c.getContext("2d");
+        let width = 0;
+        function size() {
+          const dpr = window.devicePixelRatio || 1;
+          width = Math.max(1, c.clientWidth);
+          c.width = width * dpr;
+          c.height = height * dpr;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          if (c._redraw) c._redraw();
+        }
+        if ("ResizeObserver" in window) new ResizeObserver(size).observe(c);
+        else window.addEventListener("resize", size);
+        size();
+        return { c, ctx, W: () => width };
+      }
+
+      function grid(ctx, w, h) {
+        ctx.fillStyle = COL.paper; ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = "#E5EDF1"; ctx.lineWidth = 1;
+        for (let x = 20; x < w; x += 28) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+        for (let y = 20; y < h; y += 28) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+      }
+
+      function rr(ctx, x, y, w, h, r, fill, stroke) {
+        const q = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+        ctx.beginPath(); ctx.moveTo(x + q, y); ctx.lineTo(x + w - q, y); ctx.quadraticCurveTo(x + w, y, x + w, y + q); ctx.lineTo(x + w, y + h - q); ctx.quadraticCurveTo(x + w, y + h, x + w - q, y + h); ctx.lineTo(x + q, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - q); ctx.lineTo(x, y + q); ctx.quadraticCurveTo(x, y, x + q, y); ctx.closePath();
+        if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+        if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1.5; ctx.stroke(); }
+      }
+
+      function arrow(ctx, x1, y1, x2, y2, color) {
+        const a = Math.atan2(y2 - y1, x2 - x1), s = 7;
+        ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - s * Math.cos(a - .55), y2 - s * Math.sin(a - .55)); ctx.lineTo(x2 - s * Math.cos(a + .55), y2 - s * Math.sin(a + .55)); ctx.closePath(); ctx.fill();
+      }
+
+      function onVisible(el, fn) {
+        if (reduceMotion) return;
+        const observer = new IntersectionObserver(entries => { if (entries[0].isIntersecting) { observer.disconnect(); fn(); } }, { threshold: .25 });
+        observer.observe(el);
+      }
+
+      /* Widget 1: voltage + resistance determine current. */
+      (() => {
+        const q = setupCanvas("c1", 300), vEl = document.getElementById("w1v"), rEl = document.getElementById("w1r");
+        let phase = 0, running = false, last = performance.now();
+
+        function values() { const v = +vEl.value, r = +rEl.value / 10; return { v, r, i: v / r }; }
+        function pointOnLoop(d, L, R, T, B) {
+          const ww = R - L, hh = B - T, p = 2 * (ww + hh); let z = ((d % p) + p) % p;
+          if (z < ww) return [L + z, T]; z -= ww;
+          if (z < hh) return [R, T + z]; z -= hh;
+          if (z < ww) return [R - z, B]; z -= ww;
+          return [L, B - z];
+        }
+        function draw() {
+          const ctx = q.ctx, w = q.W(), { v, r, i } = values(), L = 74, R = w - 42, T = 72, B = 222, mid = (L + R) / 2;
+          grid(ctx, w, 300);
+          ctx.strokeStyle = COL.ink; ctx.lineWidth = 8; ctx.lineJoin = "round"; ctx.beginPath(); ctx.moveTo(L, T); ctx.lineTo(mid - 74, T); ctx.moveTo(mid + 74, T); ctx.lineTo(R, T); ctx.lineTo(R, B); ctx.lineTo(L, B); ctx.moveTo(L, B); ctx.lineTo(L, 174); ctx.moveTo(L, 120); ctx.lineTo(L, T); ctx.stroke();
+
+          const teeth = Math.round(3 + r * .7), span = 148, step = span / teeth;
+          ctx.strokeStyle = COL.orange; ctx.lineWidth = Math.max(2.5, 7 - r * .45); ctx.beginPath(); ctx.moveTo(mid - 74, T);
+          for (let k = 0; k < teeth; k++) ctx.lineTo(mid - 74 + step * (k + .5), T + (k % 2 ? -13 : 13));
+          ctx.lineTo(mid + 74, T); ctx.stroke();
+
+          ctx.strokeStyle = COL.violet; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(L - 22, 128); ctx.lineTo(L + 22, 128); ctx.moveTo(L - 12, 162); ctx.lineTo(L + 12, 162); ctx.stroke();
+          ctx.fillStyle = COL.violet; ctx.font = "700 18px 'Space Grotesk'"; ctx.textAlign = "left"; ctx.fillText("+", L + 28, 134); ctx.fillText("−", L + 28, 169);
+          const arrows = Math.max(1, Math.round(v / 2.5));
+          for (let k = 0; k < arrows; k++) arrow(ctx, L - 42 - k * 9, 174, L - 42 - k * 9, 120, COL.violet);
+
+          const count = Math.max(8, Math.min(34, Math.round(8 + i * 2.2))), perimeter = 2 * ((R - L) + (B - T));
+          for (let k = 0; k < count; k++) { const p = pointOnLoop(phase + k * perimeter / count, L, R, T, B); ctx.fillStyle = COL.green; ctx.beginPath(); ctx.arc(p[0], p[1], 4, 0, Math.PI * 2); ctx.fill(); }
+
+          rr(ctx, mid - 72, 20, 144, 34, 7, "rgba(255,255,255,.95)", COL.line); ctx.fillStyle = COL.orange; ctx.font = "600 12px 'IBM Plex Mono'"; ctx.textAlign = "center"; ctx.fillText("RESISTANCE " + r.toFixed(1) + " Ω", mid, 42);
+          rr(ctx, w - 166, 244, 132, 34, 7, "rgba(255,255,255,.95)", COL.line); ctx.fillStyle = COL.green; ctx.fillText("CURRENT " + i.toFixed(1) + " A", w - 100, 266);
+          ctx.fillStyle = COL.violet; ctx.textAlign = "left"; ctx.fillText("VOLTAGE", 18, 108);
+
+          document.getElementById("w1vOut").textContent = v + " V"; document.getElementById("w1rOut").textContent = r.toFixed(1) + " Ω"; document.getElementById("w1rv").textContent = v + " V"; document.getElementById("w1rr").textContent = r.toFixed(1) + " Ω"; document.getElementById("w1ri").textContent = i.toFixed(1) + " A";
+        }
+        function tick(now) { if (!running) return; const dt = Math.min(.05, (now - last) / 1000); last = now; phase += (24 + values().i * 16) * dt; draw(); requestAnimationFrame(tick); }
+        function interact() { draw(); if (!reduceMotion && !running) { running = true; last = performance.now(); requestAnimationFrame(tick); } }
+        vEl.addEventListener("input", interact); rEl.addEventListener("input", interact); q.c._redraw = draw; draw(); onVisible(q.c, () => { running = true; last = performance.now(); requestAnimationFrame(tick); });
+      })();
+
+      /* Widget 2: equal loads in series and parallel. */
+      (() => {
+        const q = setupCanvas("c2", 300), nEl = document.getElementById("w2n"), rEl = document.getElementById("w2r"), par = document.getElementById("w2parallel"), ser = document.getElementById("w2series");
+        let mode = "parallel";
+        function load(ctx, x, y, label) { rr(ctx, x - 35, y - 20, 70, 40, 7, "#fff", COL.orange); ctx.fillStyle = COL.ink; ctx.font = "600 12px 'IBM Plex Mono'"; ctx.textAlign = "center"; ctx.fillText(label, x, y + 4); }
+        function draw() {
+          const ctx = q.ctx, w = q.W(), n = +nEl.value, r = +rEl.value, L = 78, R = w - 42, T = 55, B = 240, req = mode === "parallel" ? r / n : r * n, totalI = 12 / req, eachV = mode === "parallel" ? 12 : 12 / n;
+          grid(ctx, w, 300); ctx.strokeStyle = COL.ink; ctx.lineWidth = 3; ctx.fillStyle = COL.violet;
+          ctx.beginPath(); ctx.moveTo(L - 16, 126); ctx.lineTo(L + 16, 126); ctx.moveTo(L - 9, 157); ctx.lineTo(L + 9, 157); ctx.stroke(); ctx.font = "700 16px 'Space Grotesk'"; ctx.fillText("+", L + 22, 131); ctx.fillText("−", L + 22, 163);
+          if (mode === "parallel") {
+            ctx.strokeStyle = COL.ink; ctx.beginPath(); ctx.moveTo(L, T); ctx.lineTo(R, T); ctx.moveTo(L, B); ctx.lineTo(R, B); ctx.moveTo(L, T); ctx.lineTo(L, 126); ctx.moveTo(L, 157); ctx.lineTo(L, B); ctx.stroke();
+            for (let k = 0; k < n; k++) { const x = L + (k + 1) * (R - L) / (n + 1); ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, 128); ctx.moveTo(x, 168); ctx.lineTo(x, B); ctx.stroke(); load(ctx, x, 148, r + " Ω"); arrow(ctx, x + 12, 102, x + 12, 120, COL.green); }
+            ctx.fillStyle = COL.muted; ctx.font = "12px 'IBM Plex Mono'"; ctx.textAlign = "center"; ctx.fillText("Every branch spans the same two rails → every load gets 12 V", (L + R) / 2, 276);
+          } else {
+            const y = 92; ctx.strokeStyle = COL.ink; ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(R, y); ctx.lineTo(R, B); ctx.lineTo(L, B); ctx.moveTo(L, B); ctx.lineTo(L, 157); ctx.moveTo(L, 126); ctx.lineTo(L, y); ctx.stroke();
+            for (let k = 0; k < n; k++) { const x = L + (k + 1) * (R - L) / (n + 1); rr(ctx, x - 28, y - 21, 56, 42, 7, "#fff", COL.orange); ctx.fillStyle = COL.ink; ctx.font = "600 11px 'IBM Plex Mono'"; ctx.textAlign = "center"; ctx.fillText(r + " Ω", x, y + 4); }
+            ctx.fillStyle = COL.muted; ctx.font = "12px 'IBM Plex Mono'"; ctx.fillText("One path → the loads share the battery's 12 V", (L + R) / 2, 276);
+          }
+          document.getElementById("w2nOut").textContent = n; document.getElementById("w2rOut").textContent = r + " Ω"; document.getElementById("w2volts").textContent = eachV.toFixed(1) + " V"; document.getElementById("w2amps").textContent = totalI.toFixed(1) + " A"; document.getElementById("w2req").textContent = req.toFixed(2) + " Ω";
+        }
+        function choose(next) { mode = next; par.setAttribute("aria-pressed", next === "parallel"); ser.setAttribute("aria-pressed", next === "series"); draw(); }
+        par.addEventListener("click", () => choose("parallel")); ser.addEventListener("click", () => choose("series")); nEl.addEventListener("input", draw); rEl.addEventListener("input", draw); q.c._redraw = draw; draw();
+      })();
+
+      /* Widget 3: battery internal resistance. */
+      (() => {
+        const q = setupCanvas("c3", 270), iEl = document.getElementById("w3i"), bEl = document.getElementById("w3b");
+        function draw() {
+          const ctx = q.ctx, w = q.W(), amps = +iEl.value, resistance = +bEl.value / 1000, openV = 12.5, drop = amps * resistance, robotV = Math.max(0, openV - drop), heat = amps * amps * resistance, L = 54, R = w - 44, y = 126, full = R - L;
+          grid(ctx, w, 270); rr(ctx, L, y - 30, full, 60, 10, "#EEF3F6", COL.line);
+          const usable = full * robotV / openV, lost = full - usable; rr(ctx, L, y - 30, usable, 60, 9, COL.green); if (lost > 1) rr(ctx, L + usable, y - 30, lost, 60, 7, COL.orange);
+          ctx.fillStyle = "#fff"; ctx.font = "600 12px 'IBM Plex Mono'"; ctx.textAlign = "center"; if (usable > 75) ctx.fillText(robotV.toFixed(1) + " V reaches robot", L + usable / 2, y + 4); if (lost > 70) ctx.fillText(drop.toFixed(1) + " V lost", L + usable + lost / 2, y + 4);
+          ctx.fillStyle = COL.muted; ctx.textAlign = "left"; ctx.fillText("BATTERY · 12.5 V OPEN CIRCUIT", L, 62); ctx.textAlign = "right"; ctx.fillText("ROBOT LOAD · " + amps + " A", R, 62);
+          arrow(ctx, L + 8, 86, R - 8, 86, COL.violet);
+          const condition = resistance <= .015 ? "excellent" : resistance <= .022 ? "healthy" : resistance <= .029 ? "tired" : "poor";
+          rr(ctx, L, 194, full, 38, 7, "rgba(255,255,255,.95)", COL.line); ctx.fillStyle = heat > 700 ? COL.red : heat > 300 ? COL.orange : COL.muted; ctx.textAlign = "center"; ctx.fillText(heat.toFixed(0) + " W becomes heat inside the battery and main path", (L + R) / 2, 218);
+          document.getElementById("w3iOut").textContent = amps + " A"; document.getElementById("w3bOut").textContent = condition; document.getElementById("w3volts").textContent = robotV.toFixed(1) + " V"; document.getElementById("w3heat").textContent = heat.toFixed(0) + " W";
+        }
+        iEl.addEventListener("input", draw); bEl.addEventListener("input", draw); q.c._redraw = draw; draw();
+      })();
+    })();
+  </script>
+  <script src="search-highlight.js"></script>
+</body>
+
+</html>
