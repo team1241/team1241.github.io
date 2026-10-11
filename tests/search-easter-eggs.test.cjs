@@ -223,7 +223,8 @@ test('home page resource versions match current source bytes, preventing stale e
   const page=readFileSync('docs/index.html','utf8');
   const names=['search-easter-eggs.css','search-egg-scenes.css','search-egg-effects.css','search-team-effects.css','search-team-effects.js','search-team-stats.css','search-team-stats.js','search-component-effects.css','search-component-effects.js','search-cnc-effects.css','search-cnc-effects.js','search-egg-catalog.js','search-egg-scenes.js','search-egg-effects.js','search-easter-eggs.js'];
   for(const name of names){
-    const hash=createHash('sha256').update(readFileSync('docs/'+name)).digest('hex').slice(0,12);
+    const source=readFileSync('docs/'+name,'utf8').replace(/\r\n/g,'\n');
+    const hash=createHash('sha256').update(source).digest('hex').slice(0,12);
     assert.ok(page.includes(name+'?v='+hash),name);
   }
 });
