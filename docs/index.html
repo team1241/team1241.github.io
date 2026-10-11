@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
+<script src="theme.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Team 1241 — Resources</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -120,12 +121,12 @@
 
     .lesson-search{margin-top:36px;padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 10px 30px -20px rgba(22,40,59,.35)}
     .lesson-search label{display:block;margin-bottom:8px;font:600 13px "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase}
-    .lesson-search input{width:100%;padding:13px 15px;border:1.5px solid var(--line);border-radius:8px;color:var(--ink);background:#FBFDFE;font:17px "Public Sans",sans-serif;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease,transform .15s ease}
-    .lesson-search input:hover{border-color:var(--accent);background:#fff;box-shadow:0 7px 18px -12px rgba(11,143,107,.7);transform:translateY(-1px)}
+    .lesson-search input{width:100%;padding:13px 15px;border:1.5px solid var(--line);border-radius:8px;color:var(--ink);background:var(--surface-alt);font:17px "Public Sans",sans-serif;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease,transform .15s ease}
+    .lesson-search input:hover{border-color:var(--accent);background:var(--panel);box-shadow:0 7px 18px -12px rgba(11,143,107,.7);transform:translateY(-1px)}
     .lesson-search input:focus{outline:3px solid var(--accent-soft);border-color:var(--accent)}
     .search-status{min-height:24px;margin-top:9px;color:var(--muted);font:12.5px "IBM Plex Mono",monospace}
     .search-results{display:grid;gap:10px;margin-top:10px}
-    .search-result{display:block;padding:14px 16px;border:1px solid var(--line);border-radius:8px;color:inherit;text-decoration:none;background:#FBFDFE}
+    .search-result{display:block;padding:14px 16px;border:1px solid var(--line);border-radius:8px;color:inherit;text-decoration:none;background:var(--surface-alt)}
     .search-result:hover{border-color:var(--accent);background:var(--accent-soft)}
     .result-head{display:flex;justify-content:space-between;gap:12px;font-family:"Space Grotesk",sans-serif;font-weight:700}
     .result-count{flex:none;color:var(--accent);font:600 11px "IBM Plex Mono",monospace;text-transform:uppercase}
@@ -136,13 +137,24 @@
       .lesson-search input:hover{transform:none}
     }
   </style>
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="search-easter-eggs.css?v=28787c66aecf">
+  <link rel="stylesheet" href="search-egg-scenes.css?v=02f3c3259d15">
+  <link rel="stylesheet" href="search-egg-effects.css?v=1fd0e9827192">
+  <link rel="stylesheet" href="search-cnc-effects.css?v=c317fb2f2af9">
+  <link rel="stylesheet" href="search-component-effects.css?v=2251a3c8518b">
+  <link rel="stylesheet" href="search-team-effects.css?v=0ebc31b33110">
+  <link rel="stylesheet" href="search-team-stats.css?v=38be0f2c8f58">
 </head>
 
 <body>
   <div class="wrap">
-    <header>
+    <header class="site-header">
+      <div>
       <h1>Team 1241 — Resources</h1>
-      <p>FRC Team 1241 · notes &amp; interactive lessons</p>
+      <p>FRC Team 1241 · notes, interactive lessons &amp; utilities</p>
+      </div>
+      <button class="site-theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode" aria-pressed="false">☾ Dark mode</button>
     </header>
 
     <div class="lesson-search" role="search">
@@ -150,6 +162,14 @@
       <input id="lessonSearch" type="search" placeholder="Try: crosstalk, voltage, odometry, PID…" autocomplete="off">
       <div class="search-status" id="searchStatus" aria-live="polite">Type a keyword to search lesson text.</div>
       <div class="search-results" id="searchResults"></div>
+      <section class="search-easter-egg" id="searchEasterEgg" aria-label="Search surprise" hidden>
+        <h3 class="egg-title"></h3>
+        <div class="egg-stage" hidden></div>
+        <p class="egg-caption" aria-live="polite"></p>
+        <div class="egg-team-stats" id="searchTeamStats" aria-live="polite" hidden></div>
+        <button class="egg-action" type="button"></button>
+        <p class="egg-credit">Icons by <a href="https://openmoji.org/">OpenMoji</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></p>
+      </section>
     </div>
 
     <h2 class="section-title">Programming &amp; Controls</h2>
@@ -231,12 +251,33 @@
         </a>
       </li>
     </ul>
+
+    <h2 class="section-title" id="utilities">Utilities</h2>
+    <ul class="pages">
+      <li>
+        <a href="pully-generator/index.html" data-utility>
+          <span class="num">Utility 01</span>
+          <span class="title">Pully-Generator</span>
+          <span class="desc">Design custom HTD timing pulleys with a live 3D preview, configurable hex bores,
+            tube inserts, and bearing cones. Export STEP or STL files in inches or millimeters.</span>
+        </a>
+      </li>
+    </ul>
   </div>
+  <div id="searchEggOverlay" class="egg-screen-overlay" hidden aria-hidden="true"></div>
+  <script src="search-team-effects.js?v=7fcf309de5a1"></script>
+  <script src="search-team-stats.js?v=69083ca713b9"></script>
+  <script src="search-egg-catalog.js?v=c9d7c0f6a527"></script>
+  <script src="search-egg-scenes.js?v=3225cd99b2b5"></script>
+  <script src="search-component-effects.js?v=5ab89d0aa2a4"></script>
+  <script src="search-cnc-effects.js?v=1f5c9109aa69"></script>
+  <script src="search-egg-effects.js?v=eac44b94b5eb"></script>
+  <script src="search-easter-eggs.js?v=9b6eaeaee3b4"></script>
   <script>
     (function () {
       "use strict";
       const input=document.getElementById("lessonSearch"),status=document.getElementById("searchStatus"),results=document.getElementById("searchResults");
-      const cards=[...document.querySelectorAll("ul.pages a")].map((link,order)=>({href:link.getAttribute("href"),title:link.querySelector(".title").textContent.trim(),order}));
+      const cards=[...document.querySelectorAll("ul.pages a:not([data-utility])")].map((link,order)=>({href:link.getAttribute("href"),title:link.querySelector(".title").textContent.trim(),order}));
       let lessons=null,loading=null,timer=0;
       function loadLessons(){
         if(lessons)return Promise.resolve(lessons);if(loading)return loading;
@@ -252,16 +293,17 @@
       }
       async function search(){
         const query=input.value.trim();results.replaceChildren();
+        const surprise=window.searchEasterEgg.show(query);
         if(query.length<2){status.textContent=query?"Type at least two characters.":"Type a keyword to search lesson text.";return}
         try{
           const data=await loadLessons();if(input.value.trim()!==query)return;const needle=query.toLocaleLowerCase();
           const found=data.map(lesson=>{let count=0;const matching=[];lesson.blocks.forEach(block=>{const lower=block.toLocaleLowerCase();let at=lower.indexOf(needle);if(at!==-1)matching.push(block);while(at!==-1){count++;at=lower.indexOf(needle,at+needle.length)}});return{...lesson,count,matching}}).filter(lesson=>lesson.count).sort((a,b)=>b.count-a.count||a.order-b.order);
-          status.textContent=found.length?found.length+" lesson"+(found.length===1?"":"s")+" contain “"+query+"”. Select one to see every match.":"No lesson contains “"+query+"”.";
+          status.textContent=found.length?found.length+" lesson"+(found.length===1?"":"s")+" contain “"+query+"”. Select one to see every match.":surprise?"Bonus task unlocked.":"No lesson contains “"+query+"”.";
           found.forEach(lesson=>{const link=document.createElement("a");link.className="search-result";link.href=lesson.href+"?search="+encodeURIComponent(query);const head=document.createElement("div");head.className="result-head";const title=document.createElement("span");title.textContent=lesson.title;const count=document.createElement("span");count.className="result-count";count.textContent=lesson.count+" match"+(lesson.count===1?"":"es");head.append(title,count);link.append(head);lesson.matching.slice(0,2).forEach(block=>{const line=document.createElement("div");line.className="search-snippet";line.append(snippet(block,query));link.append(line)});results.append(link)});
-        }catch(error){status.textContent="Lesson search could not load. Refresh the page and try again."}
+        }catch(error){if(input.value.trim()===query)status.textContent=surprise?"Bonus task unlocked.":"Lesson search could not load. Refresh the page and try again."}
       }
       input.addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(search,140)});
-      input.addEventListener("focus",loadLessons,{once:true});
+      input.addEventListener("focus",()=>loadLessons().catch(()=>{}),{once:true});
     })();
   </script>
 </body>

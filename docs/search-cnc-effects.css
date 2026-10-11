@@ -1,0 +1,60 @@
+/* Six machining stories, all automatic and finite. Moving chips share the tool's path. */
+.egg-cnc-effect svg{width:100%;height:auto;display:block;overflow:visible}
+.egg-cnc-effect text{font:600 11px "IBM Plex Mono",monospace;fill:var(--ink)}
+.egg-cnc-effect .egg-cnc-zero-readout text{fill:#9ce4bd}
+.egg-cnc-vignette{position:absolute;right:24px;bottom:24px;width:min(440px,calc(100vw - 48px));animation:actor-entrance 4s ease both}
+.egg-cnc-flutes{stroke-dasharray:8 4;animation:cnc-flutes .8s linear 4}
+.egg-cnc-finish-glint{stroke-dasharray:450;animation:cnc-finish-glint 3.2s ease both}
+.egg-cnc-pocket-cut{stroke-dasharray:666;animation:cnc-pocket-cut 3.6s linear both}
+.egg-cnc-pocket-track{opacity:.35}
+.egg-cnc-pocket-head{animation:cnc-pocket-travel 3.6s linear both}
+.egg-cnc-pocket-chips .egg-hero-chip{animation-delay:calc(.6s + var(--delay))}
+.egg-cnc-finish-star{transform-box:fill-box;transform-origin:center;animation:cnc-finish-star 3.6s ease both}
+.egg-cnc-carousel{transform-origin:230px 142px;animation:cnc-carousel 3.8s cubic-bezier(.3,.6,.3,1) both}
+.egg-cnc-transfer-tool{animation:cnc-tool-transfer 3.8s ease both}
+.egg-cnc-installed-tool{animation:cnc-tool-installed 3.8s ease both}
+.egg-cnc-tool-ticket{animation:cnc-tool-ticket 3.8s ease both}
+.egg-cnc-tool-ticket--next{animation-delay:.35s}
+.egg-cnc-probe{animation:cnc-probe-touch 3.6s linear both}
+.egg-cnc-datum{stroke-dasharray:7 5;animation:cnc-datum 3.6s ease both}
+.egg-cnc-probe-contact{transform-box:fill-box;transform-origin:center;opacity:0}
+.egg-cnc-probe-contact--top{animation:cnc-contact-ping .5s 1s ease both}
+.egg-cnc-probe-contact--side{animation:cnc-contact-ping .5s 2.664s ease both}
+.egg-cnc-zero-readout{animation:cnc-zero-found 3.6s ease both}
+.egg-cnc-indexed-part{transform-origin:330px 142px;animation:cnc-reclamp 3.8s ease both}
+.egg-cnc-clamp--left{animation:cnc-clamp-left 3.8s ease both}
+.egg-cnc-clamp--right{animation:cnc-clamp-right 3.8s ease both}
+.egg-cnc-index-arrow{stroke-dasharray:250;animation:cnc-index-arrow 3.8s ease both}
+.egg-cnc-setup-old{animation:cnc-setup-old 3.8s ease both}
+.egg-cnc-setup-new{animation:cnc-setup-new 3.8s ease both}
+.egg-cnc-chuck{transform-box:fill-box;transform-origin:center;animation:cnc-chuck .55s linear 6}
+.egg-cnc-lathe-tool,.egg-cnc-lathe-emitter{animation:cnc-lathe-feed 3s .25s linear both}
+.egg-cnc-turning-stock{animation:cnc-lathe-remove 3s .25s linear both}
+.egg-cnc-swarf{stroke-dasharray:250;animation:cnc-swarf 3s .25s linear both}
+@keyframes cnc-flutes{to{stroke-dashoffset:-24}}
+@keyframes cnc-finish-glint{0%,72%{stroke-dashoffset:450;opacity:0}85%{opacity:1}100%{stroke-dashoffset:0;opacity:.4}}
+/* 240 + 93 + 240 + 93 = 666 units: each segment's time matches its length. */
+@keyframes cnc-pocket-travel{0%{transform:translate(210px,47px)}15%{transform:translate(210px,112px)}40.225%{transform:translate(450px,112px)}50%{transform:translate(450px,205px)}75.225%{transform:translate(210px,205px)}85%{transform:translate(210px,112px)}100%{transform:translate(210px,47px)}}
+@keyframes cnc-pocket-cut{0%,15%{stroke-dashoffset:666}85%,100%{stroke-dashoffset:0}}
+@keyframes cnc-finish-star{0%,85%{opacity:0;transform:rotate(-25deg)}90%{opacity:1}100%{opacity:0;transform:rotate(25deg)}}
+@keyframes cnc-carousel{0%,10%{transform:rotate(0)}37%,72%{transform:rotate(120deg)}100%{transform:rotate(180deg)}}
+@keyframes cnc-tool-transfer{0%,35%{opacity:0;transform:translate(0)}38%{opacity:1}67%{opacity:1;transform:translate(144px,-11px)}72%,100%{opacity:0;transform:translate(144px,-11px)}}
+@keyframes cnc-tool-installed{0%,66%{opacity:0}72%,100%{opacity:1}}
+@keyframes cnc-tool-ticket{0%,50%{opacity:0;transform:translateY(10px)}70%,100%{opacity:1;transform:translateY(0)}}
+/* Ruby radius 7: centers 144 and 218 touch the stock at y=151 and x=225. */
+@keyframes cnc-probe-touch{0%{transform:translate(320px,65px)}28%,34%{transform:translate(320px,144px)}44%{transform:translate(320px,55px)}57%{transform:translate(170px,55px)}65%{transform:translate(170px,185px)}74%,80%{transform:translate(218px,185px)}90%,100%{transform:translate(165px,185px)}}
+@keyframes cnc-datum{0%,72%{opacity:0}83%,100%{opacity:.8}}
+@keyframes cnc-contact-ping{0%{opacity:0;transform:scale(.4)}35%{opacity:.9}100%{opacity:0;transform:scale(1.35)}}
+@keyframes cnc-zero-found{0%,76%{opacity:0;transform:translateY(10px)}88%,100%{opacity:1;transform:translateY(0)}}
+@keyframes cnc-reclamp{0%,16%{transform:translateY(0) rotate(0)}28%{transform:translateY(-30px) rotate(0)}55%{transform:translateY(-30px) rotate(90deg)}72%,100%{transform:translateY(0) rotate(90deg)}}
+@keyframes cnc-clamp-left{0%,12%,80%,100%{transform:translateX(0)}24%,65%{transform:translateX(-38px)}}
+@keyframes cnc-clamp-right{0%,12%,80%,100%{transform:translateX(0)}24%,65%{transform:translateX(38px)}}
+@keyframes cnc-index-arrow{0%,25%{opacity:0;stroke-dashoffset:250}55%,70%{opacity:1;stroke-dashoffset:0}90%,100%{opacity:0}}
+@keyframes cnc-setup-old{0%,50%{opacity:1}65%,100%{opacity:.25}}
+@keyframes cnc-setup-new{0%,65%{opacity:0;transform:translateY(8px)}80%,100%{opacity:1;transform:translateY(0)}}
+@keyframes cnc-chuck{50%{transform:scaleY(.55)}100%{transform:scaleY(1)}}
+@keyframes cnc-lathe-feed{0%{transform:translate(0,95px)}18%{transform:translate(0,0)}80%{transform:translate(var(--lathe-travel),0)}100%{transform:translate(var(--lathe-travel),95px)}}
+@keyframes cnc-lathe-remove{0%,18%{clip-path:inset(0)}80%,100%{clip-path:inset(0 100% 0 0)}}
+@keyframes cnc-swarf{0%,18%{stroke-dashoffset:250;opacity:0;transform:translateY(0)}25%{opacity:1}60%{stroke-dashoffset:0;opacity:1}80%,100%{opacity:0;transform:translateY(28px)}}
+@media(max-width:520px){.egg-cnc-vignette{right:12px;bottom:12px;width:calc(100vw - 24px)}.egg-cnc-effect text{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.egg-cnc-effect *{animation:none!important}}

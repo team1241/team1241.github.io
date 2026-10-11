@@ -1,0 +1,157 @@
+.egg-stage{--egg-blue:#79B9DB;--egg-gold:#F2AE46;--egg-green:#79C8A4;--egg-red:#E48388;--egg-metal:#8D9EAD;--egg-paper:#FFFDF4;--egg-line:#9BB0BE;height:auto;display:block;margin:16px 0;background:#E8F0F3;color:#1B3245;border:1px solid var(--line)}
+html[data-theme="dark"] .egg-stage{--egg-blue:#61A5CE;--egg-gold:#F4B24C;--egg-green:#67B994;--egg-red:#D7727D;--egg-metal:#718B9C;--egg-paper:#203C50;--egg-line:#547486;background:#132536;color:#E2EDF5}
+.egg-scene{padding:14px 18px 12px;min-height:212px;background-image:linear-gradient(#8BA4B215 1px,transparent 1px),linear-gradient(90deg,#8BA4B215 1px,transparent 1px);background-size:20px 20px}
+.egg-scene-top{display:flex;align-items:center;justify-content:space-between;gap:16px;font:600 10px/1.5 "IBM Plex Mono",monospace;letter-spacing:.9px}
+.egg-scene-badge{flex-shrink:0;border:1px solid currentColor;padding:3px 7px;border-radius:3px;font-size:9px;letter-spacing:.5px}
+.egg-drawing{display:block;width:100%;height:auto!important;max-height:210px;margin:14px auto 4px;overflow:visible;color:inherit}
+.egg-stage .egg-drawing{width:100%}
+.egg-drawing text{fill:currentColor;font-family:"IBM Plex Mono",monospace;font-weight:600}
+.egg-scene-progress{display:flex;gap:5px;margin-top:8px}
+.egg-scene-progress span{height:3px;flex:1;background:var(--egg-line);opacity:.25;border-radius:2px}
+.egg-scene-progress .is-reached{background:var(--egg-gold);opacity:1}
+.egg-title{font-size:22px;letter-spacing:-.5px}
+.egg-caption{font-size:15px;color:var(--ink)}
+.search-easter-egg .egg-action{min-height:42px;border:1px solid #4C367F;box-shadow:0 3px 0 #4C367F}
+.search-easter-egg .egg-action:active{transform:translateY(2px);box-shadow:0 1px 0 #4C367F}
+.egg-scene--terminal,.egg-scene--logs{background:#09131F;color:#A7E3C1}
+.egg-scene--crew,.egg-scene--comeback{background-color:#08182F;color:#EAF2FF;background-image:radial-gradient(circle at 15% 24%,#E5EDFF 0 1px,transparent 2px),radial-gradient(circle at 73% 18%,#E5EDFF 0 1px,transparent 2px),radial-gradient(circle at 87% 73%,#E5EDFF 0 1px,transparent 2px)}
+.egg-scene--photo,.egg-scene--polaroid{background-image:repeating-linear-gradient(-45deg,#839FA00D 0 12px,transparent 12px 24px)}
+.egg-scene--part{--egg-blue:#66737E;background:#1D2329;color:#D0D8DE;background-image:none}
+.egg-scene--budget .egg-scene-badge{color:var(--egg-red)}
+.egg-scene--whiteboard{background:var(--egg-paper)}
+.egg-airlock{height:180px;position:relative;display:grid;place-items:center;overflow:hidden;border-left:8px solid #65829B;border-right:8px solid #65829B;margin-top:10px;background:linear-gradient(90deg,#26415D55,transparent 30% 70%,#26415D55)}
+.egg-airlock-label{position:absolute;top:8px;left:12px;font:10px "IBM Plex Mono",monospace;color:#B4CADE}
+.egg-verdict{position:absolute;right:12px;bottom:8px;font:10px "IBM Plex Mono",monospace;color:#F4B24C}
+.egg-airlock::before,.egg-airlock::after{content:"";position:absolute;top:0;bottom:0;width:50%;background:repeating-linear-gradient(0deg,#375570 0 28px,#27415A 28px 31px);z-index:1;pointer-events:none}
+.egg-airlock::before{left:0;transform:translateX(-100%)}
+.egg-airlock::after{right:0;transform:translateX(100%)}
+.egg-comeback{display:flex;align-items:center;justify-content:center;gap:30px;min-height:176px;padding-top:8px}
+.egg-team-logo{width:136px;height:136px;padding:5px;object-fit:contain;background:#fff;border-radius:8px;flex-shrink:0}
+.egg-chant{font:800 var(--chant-size)/1 "Space Grotesk",system-ui,sans-serif;color:#F5B349;letter-spacing:-1px;max-width:280px}
+.egg-crowd{position:absolute;left:18px;right:18px;bottom:18px;width:calc(100% - 36px)!important;height:58px!important;pointer-events:none}
+.egg-drawing path,.egg-drawing rect,.egg-drawing circle,.egg-drawing g{transform-box:fill-box;transform-origin:center}
+/* Finite actions inside the scene. Each scenario moves its actual drawing. */
+.is-active .egg-torque-wrench{transform-box:view-box;transform-origin:330px 90px;animation:torque-ratchet 3.2s ease both}
+.is-active .egg-torque-bolt{transform-box:view-box;transform-origin:330px 90px;animation:torque-seat 3.2s ease both}
+.is-active .egg-torque-click{animation:torque-click 3.2s ease both}
+.egg-drawing .egg-torque-click{fill:var(--egg-green)}
+.is-active .egg-torque-check{stroke-dasharray:50;animation:torque-check 3.2s ease both}
+.is-active .egg-scene--bench .egg-drawing rect:not(:first-child){animation:drawer-lift .8s ease}
+.is-active .egg-scene--quest .egg-drawing rect:not(:first-child){animation:chest-rattle .7s ease}
+.is-active .egg-scene--fit .egg-drawing rect:last-of-type{animation:fit-bump .9s ease}
+.is-active .egg-scene--bus .egg-packet{animation:packet-travel .85s var(--packet-delay) ease both}
+.is-active .egg-scene--labels .egg-drawing path{stroke-dasharray:24 5;animation:wire-flow 1.2s linear}
+.is-active .egg-scene--labels .egg-drawing rect{animation:label-print .65s ease}
+.is-active .egg-scene--nathan .egg-drawing text:first-of-type{animation:meeting-drift 1.2s ease}
+.is-active .egg-scene--terminal .egg-drawing text,.is-active .egg-scene--logs .egg-drawing text{animation:terminal-type .8s steps(16) both}
+.is-active .egg-scene--logs .egg-drawing text:last-child{animation:log-enter .6s ease}
+.is-active .egg-scene--blame .egg-drawing rect{animation:blame-pass .9s ease}
+.is-active .egg-scene--alliance .egg-drawing rect{animation:plan-join .9s ease}
+.is-active .egg-scene--sketch .egg-drawing rect{stroke-dasharray:20 5;animation:sketch-solve .9s ease}
+.is-active .egg-scene--sketch[data-phase="3"] .egg-drawing{animation:constraint-panic .6s ease}
+.is-active .egg-scene--tree .egg-drawing rect{animation:feature-dig .8s ease}
+.is-active .egg-scene--files .egg-drawing rect{animation:file-stack .8s ease}
+.is-active .egg-scene--handoff .egg-drawing text:last-child{animation:file-confusion 1s ease}
+.is-active .egg-scene--mill .egg-cutter{animation:cutter-feed .8s ease}
+.is-active .egg-scene--mill .egg-chip{animation:chip-scatter .85s var(--chip-delay) ease both}
+.is-active .egg-scene--toolpath .egg-drawing path{stroke-dasharray:9 6;animation:toolpath-run 1.3s linear}
+.is-active .egg-scene--toolpath .egg-cutter{animation:cutter-traverse 1.2s ease}
+.is-active .egg-scene--part .egg-cutter{animation:another-setup 1.1s ease}
+.is-active .egg-scene--printer .egg-drawing path{stroke-dasharray:480;animation:filament-extrude 1.35s linear both}
+.is-active .egg-scene--printer .egg-drawing rect:last-of-type{animation:nozzle-wander 1.2s ease}
+.is-active .egg-scene--field .egg-rover{animation:practice-lap 1.2s ease}
+.is-active .egg-scene--field .egg-drawing>path:not(:first-of-type){animation:cone-tip .8s ease}
+.is-active .egg-scene--replay .egg-rover{animation:replay-scrub 1.3s steps(8)}
+.is-active .egg-scene--match .egg-rover{animation:defense-encounter 1.1s ease}
+.is-active .egg-scene--demo .egg-rover{animation:robot-wave 1.2s ease}
+.is-active .egg-scene--controller .egg-drawing circle{animation:button-combo .9s steps(2)}
+.is-active .egg-scene--whiteboard .egg-drawing path{stroke-dasharray:150;animation:arrow-draw .8s ease both}
+.is-active .egg-scene--bars .egg-drawing rect{transform-origin:bottom;animation:bar-grow .9s ease}
+.is-active .egg-scene--chart .egg-drawing path:not(:first-of-type){stroke-dasharray:600;animation:chart-trace 1.2s ease both}
+.is-active .egg-scene--sample .egg-drawing circle{animation:data-arrive .9s ease}
+.is-active .egg-scene--budget .egg-drawing rect:last-of-type{animation:budget-hit .7s ease}
+.is-active .egg-scene--pitch .egg-drawing rect{animation:pitch-slide .8s ease}
+.is-active .egg-scene--judge .egg-drawing text{animation:answer-reveal .8s ease}
+.is-active .egg-scene--recruit .egg-drawing circle{animation:idea-hop .9s ease}
+.is-active .egg-scene--blocks .egg-drawing rect,.is-active .egg-scene--blocks .egg-drawing circle{animation:brick-click .75s ease}
+.is-active .egg-scene--photo .egg-rover{animation:robot-pose 1s ease}
+.is-active .egg-scene--photo .egg-drawing{animation:camera-shutter .7s ease}
+.is-active .egg-scene--polaroid .egg-drawing{animation:photo-develop 1.25s ease}
+.is-active .egg-scene--timeline .egg-drawing path{animation:playhead-scan 1.2s linear}
+.is-active .egg-scene--cart .egg-drawing{animation:cart-roll 1.1s ease}
+.is-active .egg-scene--packing .egg-drawing rect:not(:first-child){animation:box-shuffle 1s ease}
+.is-active .egg-scene--checklist .egg-drawing text{animation:check-write .8s ease}
+.is-active .egg-scene--goggles .egg-drawing rect{animation:goggles-on .8s ease}
+.is-active .egg-scene--captain .egg-drawing circle{animation:radar-sweep 1.2s ease}
+.is-active .egg-scene--pit .egg-drawing rect:not(:first-child){animation:pit-tidy 1s ease}
+.is-active .egg-scene--helpdesk .egg-drawing rect{animation:ticket-forward .9s ease}
+.is-active .egg-scene--fluid .egg-drawing rect:first-child{animation:coolant-pour 1.1s ease}
+.is-active .egg-scene--tickets .egg-drawing text{animation:ticket-close .9s ease}
+.is-active .egg-scene--comeback .egg-crowd circle{animation:crowd-cheer 1s ease}
+.is-active .egg-scene--comeback .egg-crowd path{animation:hands-up 1s ease}
+.is-active .egg-scene--crew .egg-crewmate{animation:crew-eject 1.4s ease-in-out}
+.is-active .egg-scene--crew[data-phase="0"] .egg-crewmate{animation:none}
+.is-active .egg-scene--crew[data-phase="0"] .egg-airlock::before{animation:airlock-left 1.2s ease}
+.is-active .egg-scene--crew[data-phase="0"] .egg-airlock::after{animation:airlock-right 1.2s ease}
+@keyframes torque-ratchet{0%,28%,58%{transform:rotate(18deg)}15%,44%,76%,100%{transform:rotate(-15deg)}}
+@keyframes torque-seat{0%{transform:rotate(0)}15%,28%{transform:rotate(-33deg)}44%,58%{transform:rotate(-66deg)}76%,100%{transform:rotate(-99deg)}}
+@keyframes torque-click{0%,73%,90%,100%{opacity:0}77%,84%{opacity:1}}
+@keyframes torque-check{0%,77%{stroke-dashoffset:50;opacity:0}93%,100%{stroke-dashoffset:0;opacity:1}}
+@keyframes drawer-lift{40%{transform:translateY(-19px) rotate(-5deg)}}
+@keyframes chest-rattle{25%,75%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+@keyframes fit-bump{0%{transform:translateX(130px)}60%{transform:translateX(-12px)}75%{transform:translateX(14px)}}
+@keyframes packet-travel{0%{transform:translateX(-45px);opacity:0}30%{opacity:1}100%{transform:translateX(35px);opacity:1}}
+@keyframes wire-flow{to{stroke-dashoffset:-116}}
+@keyframes label-print{0%{clip-path:inset(0 100% 0 0)}100%{clip-path:inset(0)}}
+@keyframes meeting-drift{40%{transform:translateX(16px);opacity:.2}}
+@keyframes terminal-type{0%{clip-path:inset(0 100% 0 0)}100%{clip-path:inset(0)}}
+@keyframes log-enter{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes blame-pass{35%{transform:translateX(24px)}65%{transform:translateX(-8px)}}
+@keyframes plan-join{from{transform:translateY(-28px)}to{transform:translateY(0)}}
+@keyframes sketch-solve{from{stroke-dashoffset:150;transform:translate(10px,-12px)}to{stroke-dashoffset:0;transform:translate(0)}}
+@keyframes constraint-panic{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@keyframes feature-dig{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes file-stack{from{transform:translateX(65px) rotate(8deg);opacity:0}to{transform:translateX(0) rotate(0);opacity:1}}
+@keyframes file-confusion{25%,75%{transform:translateX(-8px)}50%{transform:translateX(8px)}}
+@keyframes cutter-feed{0%{transform:translateY(-28px)}65%{transform:translateY(8px)}100%{transform:translateY(0)}}
+@keyframes chip-scatter{0%{transform:translate(calc(var(--chip-x)*-1),var(--chip-y));opacity:0}20%{opacity:1}100%{transform:translate(0);opacity:1}}
+@keyframes toolpath-run{to{stroke-dashoffset:-150}}
+@keyframes cutter-traverse{0%{transform:translateX(-100px)}65%{transform:translateX(100px)}100%{transform:translateX(0)}}
+@keyframes another-setup{0%{transform:translateY(-35px)}50%{transform:translate(75px,-35px)}100%{transform:translate(0)}}
+@keyframes filament-extrude{from{stroke-dashoffset:480}to{stroke-dashoffset:0}}
+@keyframes nozzle-wander{25%{transform:translateX(-55px)}65%{transform:translateX(80px)}}
+@keyframes practice-lap{0%{transform:translate(-92px,18px) rotate(-12deg)}65%{transform:translate(25px,-14px) rotate(8deg)}100%{transform:translate(0)}}
+@keyframes cone-tip{50%{transform:rotate(48deg) translateY(9px)}}
+@keyframes replay-scrub{0%{transform:translateX(80px)}50%{transform:translateX(-40px)}100%{transform:translateX(0)}}
+@keyframes defense-encounter{25%{transform:translateY(18px)}65%{transform:translateX(-45px)}100%{transform:translate(0)}}
+@keyframes robot-wave{20%,60%{transform:rotate(-9deg)}40%,80%{transform:rotate(9deg)}}
+@keyframes button-combo{30%,70%{fill:var(--egg-gold)}50%,90%{fill:var(--egg-blue)}}
+@keyframes arrow-draw{from{stroke-dashoffset:150}to{stroke-dashoffset:0}}
+@keyframes bar-grow{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0)}}
+@keyframes chart-trace{from{stroke-dashoffset:600}to{stroke-dashoffset:0}}
+@keyframes data-arrive{from{transform:translateY(-40px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes budget-hit{20%,60%{transform:translateX(-5px);opacity:.5}40%,80%{transform:translateX(5px)}}
+@keyframes pitch-slide{from{transform:translateX(110px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes answer-reveal{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0)}}
+@keyframes idea-hop{40%{transform:translateY(-13px)}75%{transform:translateY(3px)}}
+@keyframes brick-click{0%{transform:translateY(-35px)}80%{transform:translateY(3px)}100%{transform:translateY(0)}}
+@keyframes robot-pose{40%{transform:rotate(-10deg)}70%{transform:rotate(6deg)}}
+@keyframes camera-shutter{35%{clip-path:inset(49% 0)}70%,100%{clip-path:inset(0)}}
+@keyframes photo-develop{from{filter:sepia(1) blur(3px);opacity:.4}to{filter:none;opacity:1}}
+@keyframes playhead-scan{from{transform:translateX(-85px)}to{transform:translateX(0)}}
+@keyframes cart-roll{from{transform:translateX(-150px)}65%{transform:translateX(18px)}to{transform:translateX(0)}}
+@keyframes box-shuffle{0%{transform:translate(40px,-30px) rotate(12deg)}70%{transform:translate(-7px,0) rotate(-3deg)}100%{transform:translate(0)}}
+@keyframes check-write{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0)}}
+@keyframes goggles-on{from{transform:translateY(-70px)}70%{transform:translateY(5px)}to{transform:translateY(0)}}
+@keyframes radar-sweep{from{stroke-dasharray:10 8;stroke-dashoffset:160;opacity:.2}to{stroke-dashoffset:0;opacity:1}}
+@keyframes pit-tidy{from{transform:translate(-35px,15px) rotate(-17deg)}to{transform:translate(0)}}
+@keyframes ticket-forward{from{transform:translateX(-40px);opacity:.1}to{transform:translateX(0);opacity:1}}
+@keyframes coolant-pour{25%{transform:rotate(30deg) translateY(-10px)}65%{transform:rotate(40deg) translateY(-10px)}}
+@keyframes ticket-close{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes crowd-cheer{25%,75%{transform:translateY(-9px)}50%{transform:translateY(0)}}
+@keyframes hands-up{25%,75%{transform:translateY(-5px) rotate(-8deg)}}
+@keyframes crew-eject{0%{transform:translateX(0) rotate(-12deg)}45%{transform:translateX(250px) rotate(200deg);opacity:0}46%{transform:translateX(-250px) rotate(-200deg);opacity:0}100%{transform:translateX(0) rotate(-12deg)}}
+@keyframes airlock-left{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@keyframes airlock-right{from{transform:translateX(0)}to{transform:translateX(100%)}}
+@media(max-width:520px){.egg-scene{padding:12px;min-height:180px}.egg-scene-top{gap:8px;font-size:9px;letter-spacing:.3px}.egg-drawing{min-height:136px}.egg-comeback{gap:16px}.egg-team-logo{width:108px;height:108px}.egg-chant{font-size:calc(var(--chant-size)*.8)}.egg-caption{font-size:14px}.egg-crowd{bottom:18px}}
+@media(prefers-reduced-motion:reduce){.egg-stage *, .egg-stage.is-active *,.egg-stage *::before,.egg-stage *::after{animation:none!important}.search-easter-egg .egg-action:active{transform:none}}

@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
+<script src="theme.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Basics of Electricity</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -199,7 +200,7 @@
     .eq .who { display:block; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); color:var(--muted); font:13.5px/1.7 "Public Sans",sans-serif }
     .eq .def { display:block; padding:1.5px 0 }
     .eq .note { display:block; margin-top:8px }
-    .eq code { font:12px "IBM Plex Mono",monospace; color:var(--ink); background:#EEF3F6; border:1px solid var(--line); border-radius:4px; padding:1px 6px }
+    .eq code { font:12px "IBM Plex Mono",monospace; color:var(--ink); background:var(--surface-alt); border:1px solid var(--line); border-radius:4px; padding:1px 6px }
 
     .widget {
       margin-top: 26px;
@@ -214,20 +215,20 @@
     .widget-head .name { font-weight:600; letter-spacing:.06em; text-transform:uppercase }
     .widget-head .tag { color:var(--muted) }
     .widget-body { padding:18px }
-    canvas { display:block; width:100%; border:1px solid var(--line); border-radius:8px; background:#FBFDFE }
+    canvas { display:block; width:100%; border:1px solid var(--line); border-radius:8px; background:var(--surface-alt) }
     .controls { display:flex; flex-wrap:wrap; gap:14px 26px; margin-top:16px; align-items:flex-end }
     .control { min-width:170px; flex:1 }
     .control label { display:flex; justify-content:space-between; gap:10px; margin-bottom:6px; color:var(--muted); font:12.5px "IBM Plex Mono",monospace }
     .control output { color:var(--ink); font-weight:600 }
     input[type=range] { width:100%; accent-color:var(--ink); cursor:pointer }
-    button { font:500 15px "Space Grotesk",sans-serif; background:var(--ink); color:#fff; border:0; border-radius:8px; padding:10px 18px; cursor:pointer }
+    button { font:500 15px "Space Grotesk",sans-serif; background:var(--ink); color:var(--button-text); border:0; border-radius:8px; padding:10px 18px; cursor:pointer }
     button:hover { background:#233C57 }
     button:focus-visible,input:focus-visible { outline:3px solid var(--ff); outline-offset:2px }
     .toggles { display:flex; gap:8px; flex-wrap:wrap }
-    .toggle { font:600 12.5px "IBM Plex Mono",monospace; border:1.5px solid var(--line); background:#fff; color:var(--muted); border-radius:999px; padding:7px 14px }
-    .toggle[aria-pressed=true] { color:#fff; background:var(--ff); border-color:var(--ff) }
+    .toggle { font:600 12.5px "IBM Plex Mono",monospace; border:1.5px solid var(--line); background:var(--panel); color:var(--muted); border-radius:999px; padding:7px 14px }
+    .toggle[aria-pressed=true] { color:var(--button-text); background:var(--ff); border-color:var(--ff) }
     .readouts { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px }
-    .readout { flex:1; min-width:130px; padding:10px 14px; border:1px solid var(--line); border-radius:8px; background:#FBFDFE; font-family:"IBM Plex Mono",monospace }
+    .readout { flex:1; min-width:130px; padding:10px 14px; border:1px solid var(--line); border-radius:8px; background:var(--surface-alt); font-family:"IBM Plex Mono",monospace }
     .readout .k { font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted) }
     .readout .v { font-size:20px; font-weight:600; margin-top:2px }
     .readout.r-ff { background:var(--ff-soft) } .readout.r-ff .v { color:var(--ff) }
@@ -253,6 +254,7 @@
     .footer { margin-top:80px; padding-top:24px; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px; font-family:"IBM Plex Mono",monospace }
     @media(max-width:560px) { body{font-size:16px} .widget-head{flex-direction:column} }
   </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 
 <body>
@@ -448,7 +450,7 @@
   <script>
     (function () {
       "use strict";
-      const COL = { ink: "#16283B", muted: "#5B7186", line: "#C7D5DE", green: "#0B8F6B", orange: "#E07B1F", violet: "#7A4FD0", paper: "#FBFDFE", red: "#C53B35" };
+      const COL = window.siteTheme.palette({ ink: window.siteTheme.color("#16283B"), muted: window.siteTheme.color("#5B7186"), line: window.siteTheme.color("#C7D5DE"), green: "#0B8F6B", orange: "#E07B1F", violet: "#7A4FD0", paper: window.siteTheme.color("#FBFDFE"), red: "#C53B35" });
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       function setupCanvas(id, height) {
@@ -470,7 +472,7 @@
 
       function grid(ctx, w, h) {
         ctx.fillStyle = COL.paper; ctx.fillRect(0, 0, w, h);
-        ctx.strokeStyle = "#E5EDF1"; ctx.lineWidth = 1;
+        ctx.strokeStyle = window.siteTheme.color("#E5EDF1"); ctx.lineWidth = 1;
         for (let x = 20; x < w; x += 28) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
         for (let y = 20; y < h; y += 28) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
       }
@@ -541,7 +543,7 @@
       (() => {
         const q = setupCanvas("c2", 300), nEl = document.getElementById("w2n"), rEl = document.getElementById("w2r"), par = document.getElementById("w2parallel"), ser = document.getElementById("w2series");
         let mode = "parallel";
-        function load(ctx, x, y, label) { rr(ctx, x - 35, y - 20, 70, 40, 7, "#fff", COL.orange); ctx.fillStyle = COL.ink; ctx.font = "600 12px 'IBM Plex Mono'"; ctx.textAlign = "center"; ctx.fillText(label, x, y + 4); }
+        function load(ctx, x, y, label) { rr(ctx, x - 35, y - 20, 70, 40, 7,window.siteTheme.color("#FBFDFE"), COL.orange); ctx.fillStyle = COL.ink; ctx.font = "600 12px 'IBM Plex Mono'"; ctx.textAlign = "center"; ctx.fillText(label, x, y + 4); }
         function draw() {
           const ctx = q.ctx, w = q.W(), n = +nEl.value, r = +rEl.value, L = 78, R = w - 42, T = 55, B = 240, req = mode === "parallel" ? r / n : r * n, totalI = 12 / req, eachV = mode === "parallel" ? 12 : 12 / n;
           grid(ctx, w, 300); ctx.strokeStyle = COL.ink; ctx.lineWidth = 3; ctx.fillStyle = COL.violet;
@@ -552,7 +554,7 @@
             ctx.fillStyle = COL.muted; ctx.font = "12px 'IBM Plex Mono'"; ctx.textAlign = "center"; ctx.fillText("Every branch spans the same two rails → every load gets 12 V", (L + R) / 2, 276);
           } else {
             const y = 92; ctx.strokeStyle = COL.ink; ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(R, y); ctx.lineTo(R, B); ctx.lineTo(L, B); ctx.moveTo(L, B); ctx.lineTo(L, 157); ctx.moveTo(L, 126); ctx.lineTo(L, y); ctx.stroke();
-            for (let k = 0; k < n; k++) { const x = L + (k + 1) * (R - L) / (n + 1); rr(ctx, x - 28, y - 21, 56, 42, 7, "#fff", COL.orange); ctx.fillStyle = COL.ink; ctx.font = "600 11px 'IBM Plex Mono'"; ctx.textAlign = "center"; ctx.fillText(r + " Ω", x, y + 4); }
+            for (let k = 0; k < n; k++) { const x = L + (k + 1) * (R - L) / (n + 1); rr(ctx, x - 28, y - 21, 56, 42, 7,window.siteTheme.color("#FBFDFE"), COL.orange); ctx.fillStyle = COL.ink; ctx.font = "600 11px 'IBM Plex Mono'"; ctx.textAlign = "center"; ctx.fillText(r + " Ω", x, y + 4); }
             ctx.fillStyle = COL.muted; ctx.font = "12px 'IBM Plex Mono'"; ctx.fillText("One path → the loads share the battery's 12 V", (L + R) / 2, 276);
           }
           document.getElementById("w2nOut").textContent = n; document.getElementById("w2rOut").textContent = r + " Ω"; document.getElementById("w2volts").textContent = eachV.toFixed(1) + " V"; document.getElementById("w2amps").textContent = totalI.toFixed(1) + " A"; document.getElementById("w2req").textContent = req.toFixed(2) + " Ω";
@@ -566,7 +568,7 @@
         const q = setupCanvas("c3", 270), iEl = document.getElementById("w3i"), bEl = document.getElementById("w3b");
         function draw() {
           const ctx = q.ctx, w = q.W(), amps = +iEl.value, resistance = +bEl.value / 1000, openV = 12.5, drop = amps * resistance, robotV = Math.max(0, openV - drop), heat = amps * amps * resistance, L = 54, R = w - 44, y = 126, full = R - L;
-          grid(ctx, w, 270); rr(ctx, L, y - 30, full, 60, 10, "#EEF3F6", COL.line);
+          grid(ctx, w, 270); rr(ctx, L, y - 30, full, 60, 10, window.siteTheme.color("#EEF3F6"), COL.line);
           const usable = full * robotV / openV, lost = full - usable; rr(ctx, L, y - 30, usable, 60, 9, COL.green); if (lost > 1) rr(ctx, L + usable, y - 30, lost, 60, 7, COL.orange);
           ctx.fillStyle = "#fff"; ctx.font = "600 12px 'IBM Plex Mono'"; ctx.textAlign = "center"; if (usable > 75) ctx.fillText(robotV.toFixed(1) + " V reaches robot", L + usable / 2, y + 4); if (lost > 70) ctx.fillText(drop.toFixed(1) + " V lost", L + usable + lost / 2, y + 4);
           ctx.fillStyle = COL.muted; ctx.textAlign = "left"; ctx.fillText("BATTERY · 12.5 V OPEN CIRCUIT", L, 62); ctx.textAlign = "right"; ctx.fillText("ROBOT LOAD · " + amps + " A", R, 62);
