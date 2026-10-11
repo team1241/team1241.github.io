@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script src="theme.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Four Wheels, One Motion — Kinematics &amp; Swerve</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -117,7 +118,7 @@ a:hover{color:#6740B2}
 .eq .who .def{display:block;padding:1.5px 0}
 .eq code{
   font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink);
-  background:#EEF3F6;border:1px solid var(--line);border-radius:4px;padding:1px 6px;
+  background:var(--surface-alt);border:1px solid var(--line);border-radius:4px;padding:1px 6px;
 }
 .eq.glossary .line{font-family:"Public Sans",sans-serif;font-size:14.5px;color:var(--muted);line-height:1.9}
 .eq .who .note{display:block;margin-top:8px}
@@ -134,7 +135,7 @@ a:hover{color:#6740B2}
   font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted);
   padding:8px 4px 8px;line-height:1.6;
 }
-.bd-block{fill:#FBFDFE;stroke:var(--ink);stroke-width:1.6}
+.bd-block{fill:var(--surface-alt);stroke:var(--ink);stroke-width:1.6}
 .bd-block.chc{stroke:var(--ch)}
 .bd-block.modc{stroke:var(--mod)}
 .bd-wire{stroke:var(--ink);stroke-width:1.6;fill:none}
@@ -163,7 +164,7 @@ a:hover{color:#6740B2}
 .widget-head .name{font-weight:600;letter-spacing:.06em;text-transform:uppercase}
 .widget-head .tag{color:var(--muted)}
 .widget-body{padding:18px}
-canvas{display:block;width:100%;border:1px solid var(--line);border-radius:8px;background:#FBFDFE}
+canvas{display:block;width:100%;border:1px solid var(--line);border-radius:8px;background:var(--surface-alt)}
 
 .controls{display:flex;flex-wrap:wrap;gap:14px 26px;margin-top:16px;align-items:flex-end}
 .control{min-width:170px;flex:1}
@@ -176,7 +177,7 @@ canvas{display:block;width:100%;border:1px solid var(--line);border-radius:8px;b
 input[type=range]{width:100%;accent-color:var(--ink);cursor:pointer}
 button{
   font-family:"Space Grotesk",sans-serif;font-weight:500;font-size:15px;
-  background:var(--ink);color:#fff;border:none;border-radius:8px;
+  background:var(--ink);color:var(--button-text);border:none;border-radius:8px;
   padding:10px 18px;cursor:pointer;
 }
 button:hover{background:#233C57}
@@ -188,16 +189,16 @@ button.ghost:hover{background:rgba(22,40,59,.06)}
 .toggles{display:flex;flex-wrap:wrap;gap:8px}
 .toggle{
   font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;
-  border:1.5px solid var(--line);background:#fff;color:var(--muted);
+  border:1.5px solid var(--line);background:var(--panel);color:var(--muted);
   border-radius:999px;padding:7px 14px;cursor:pointer;
 }
-.toggle[aria-pressed=true]{color:#fff}
+.toggle[aria-pressed=true]{color:var(--button-text)}
 .toggle.t-field[aria-pressed=true]{background:var(--ch);border-color:var(--ch)}
 
 .readouts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
 .readout{
   flex:1;min-width:130px;padding:10px 14px;border-radius:8px;
-  border:1px solid var(--line);background:#FBFDFE;
+  border:1px solid var(--line);background:var(--surface-alt);
   font-family:"IBM Plex Mono",monospace;
 }
 .readout .k{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -211,7 +212,7 @@ button.ghost:hover{background:rgba(22,40,59,.06)}
 /* ---------- collapsible plots ---------- */
 details.plots{
   margin-top:14px;border:1px solid var(--line);border-radius:8px;
-  background:#FBFDFE;overflow:hidden;
+  background:var(--surface-alt);overflow:hidden;
 }
 details.plots summary{
   cursor:pointer;padding:11px 14px;list-style:none;
@@ -224,7 +225,7 @@ details[open].plots summary::before{transform:rotate(90deg)}
 @media (prefers-reduced-motion:reduce){details.plots summary::before{transition:none}}
 details.plots summary:hover{color:var(--ink)}
 details.plots .plotbody{padding:0 14px 14px}
-details.plots canvas{background:#fff}
+details.plots canvas{background:var(--panel)}
 details.plots .cap{
   margin-top:10px;font-size:13.5px;color:var(--muted);line-height:1.55;
   font-family:"Public Sans",sans-serif;
@@ -247,6 +248,7 @@ a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15r
 }
 @media (max-width:560px){ body{font-size:16px} }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 <div class="wrap">
@@ -722,10 +724,10 @@ a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15r
 
 /* ---------- helpers ---------- */
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const COL = {
+const COL = window.siteTheme.palette({
   ink: css("--ink"), ch: css("--ch"), rot: css("--rot"), mod: css("--mod"),
-  muted: css("--muted"), grid: "#E4EDF2"
-};
+  muted: css("--muted"), grid: window.siteTheme.color("#E4EDF2")
+});
 function setupCanvas(id, cssHeight){
   const c = document.getElementById(id);
   const ctx = c.getContext("2d");
@@ -1589,7 +1591,7 @@ function drawTrace(ctx, vw, pts, col){
     const bx = 14, by = HGT - 30, bw = Math.min(220, w*0.35);
     ctx.fillStyle = "rgba(251,253,254,.88)";
     ctx.beginPath(); ctx.roundRect(bx - 6, by - 24, bw + 12, 44, 8); ctx.fill();
-    ctx.fillStyle = "#EEF3F6";
+    ctx.fillStyle = window.siteTheme.color("#EEF3F6");
     ctx.beginPath(); ctx.roundRect(bx, by, bw, 13, 6.5); ctx.fill();
     const frac = Math.max(0, Math.min(1, scrub/0.8));
     ctx.fillStyle = frac > 0.4 ? COL.rot : COL.mod;
@@ -1625,5 +1627,6 @@ function drawTrace(ctx, vw, pts, col){
 
 })();
 </script>
+  <script src="search-highlight.js"></script>
 </body>
 </html>

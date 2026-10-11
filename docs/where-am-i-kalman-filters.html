@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script src="theme.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Where Am I? — Sensor Fusion &amp; Kalman Filters</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -108,7 +109,7 @@ strong{font-weight:600}
 .eq .who .def{display:block;padding:1.5px 0}
 .eq code{
   font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink);
-  background:#EEF3F6;border:1px solid var(--line);border-radius:4px;padding:1px 6px;
+  background:var(--surface-alt);border:1px solid var(--line);border-radius:4px;padding:1px 6px;
 }
 .eq.glossary .line{font-family:"Public Sans",sans-serif;font-size:14.5px;color:var(--muted);line-height:1.9}
 .eq .who .note{display:block;margin-top:8px}
@@ -129,7 +130,7 @@ strong{font-weight:600}
 .widget-head .name{font-weight:600;letter-spacing:.06em;text-transform:uppercase}
 .widget-head .tag{color:var(--muted)}
 .widget-body{padding:18px}
-canvas{display:block;width:100%;border:1px solid var(--line);border-radius:8px;background:#FBFDFE}
+canvas{display:block;width:100%;border:1px solid var(--line);border-radius:8px;background:var(--surface-alt)}
 
 .controls{display:flex;flex-wrap:wrap;gap:14px 26px;margin-top:16px;align-items:flex-end}
 .control{min-width:170px;flex:1}
@@ -142,7 +143,7 @@ canvas{display:block;width:100%;border:1px solid var(--line);border-radius:8px;b
 input[type=range]{width:100%;accent-color:var(--ink);cursor:pointer}
 button{
   font-family:"Space Grotesk",sans-serif;font-weight:500;font-size:15px;
-  background:var(--ink);color:#fff;border:none;border-radius:8px;
+  background:var(--ink);color:var(--button-text);border:none;border-radius:8px;
   padding:10px 18px;cursor:pointer;
 }
 button:hover{background:#233C57}
@@ -154,10 +155,10 @@ button.ghost:hover{background:rgba(22,40,59,.06)}
 .toggles{display:flex;flex-wrap:wrap;gap:8px}
 .toggle{
   font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;
-  border:1.5px solid var(--line);background:#fff;color:var(--muted);
+  border:1.5px solid var(--line);background:var(--panel);color:var(--muted);
   border-radius:999px;padding:7px 14px;cursor:pointer;
 }
-.toggle[aria-pressed=true]{color:#fff}
+.toggle[aria-pressed=true]{color:var(--button-text)}
 .toggle.t-truth[aria-pressed=true]{background:var(--ink);border-color:var(--ink)}
 .toggle.t-dr[aria-pressed=true]{background:var(--dr);border-color:var(--dr)}
 .toggle.t-gps[aria-pressed=true]{background:var(--gps);border-color:var(--gps)}
@@ -166,7 +167,7 @@ button.ghost:hover{background:rgba(22,40,59,.06)}
 .readouts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
 .readout{
   flex:1;min-width:130px;padding:10px 14px;border-radius:8px;
-  border:1px solid var(--line);background:#FBFDFE;
+  border:1px solid var(--line);background:var(--surface-alt);
   font-family:"IBM Plex Mono",monospace;
 }
 .readout .k{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -178,7 +179,7 @@ button.ghost:hover{background:rgba(22,40,59,.06)}
 .bars{margin-top:16px;display:grid;gap:8px}
 .bar-row{display:grid;grid-template-columns:120px 1fr 64px;gap:10px;align-items:center;
   font-family:"IBM Plex Mono",monospace;font-size:13px}
-.bar-track{height:14px;background:#EEF3F6;border-radius:7px;overflow:hidden}
+.bar-track{height:14px;background:var(--surface-alt);border-radius:7px;overflow:hidden}
 .bar-fill{height:100%;border-radius:7px;width:0%;transition:width .35s ease}
 @media (prefers-reduced-motion:reduce){.bar-fill{transition:none}}
 
@@ -204,6 +205,7 @@ a.next .t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15r
   body{font-size:16px}
 }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 <div class="wrap">
@@ -503,10 +505,10 @@ function randn(){ // gaussian via Box-Muller
   return Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v);
 }
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const COL = {
+const COL = window.siteTheme.palette({
   ink: css("--ink"), dr: css("--dr"), gps: css("--gps"),
-  fused: css("--fused"), muted: css("--muted"), grid: "#E4EDF2"
-};
+  fused: css("--fused"), muted: css("--muted"), grid: window.siteTheme.color("#E4EDF2")
+});
 
 // Hi-DPI canvas that resizes with its container
 function setupCanvas(id, cssHeight){
@@ -1004,5 +1006,6 @@ const CM_PER_PX = 1.2;      // pretend scale for readouts
 
 })();
 </script>
+  <script src="search-highlight.js"></script>
 </body>
 </html>
