@@ -121,6 +121,27 @@
 
     .lesson-search{margin-top:36px;padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 10px 30px -20px rgba(22,40,59,.35)}
     .lesson-search label{display:block;margin-bottom:8px;font:600 13px "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase}
+    .search-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,270px);gap:12px;align-items:end}
+    .search-controls>div{min-width:0}
+    .search-controls input{min-width:0;min-height:54px}
+    .category-select{position:relative}
+    .category-select svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--accent);pointer-events:none}
+    .category-select::after{content:"";position:absolute;right:18px;top:22px;width:7px;height:7px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(45deg);pointer-events:none}
+    .lesson-search select{appearance:none;width:100%;min-height:54px;padding:14px 38px 14px 44px;border:1.5px solid var(--line);border-radius:10px;color:var(--accent);background:var(--accent-soft);font:600 15px "Space Grotesk",sans-serif;cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease}
+    .lesson-search select:hover{border-color:var(--accent)}
+    .lesson-search select:focus-visible{outline:3px solid var(--accent-soft);outline-offset:3px;border-color:var(--accent)}
+    .lesson-search select option{color:var(--ink);background:var(--panel)}
+    @supports (appearance:base-select){
+      .lesson-search select,.lesson-search select::picker(select){appearance:base-select}
+      .lesson-search select::picker-icon{display:none}
+      .lesson-search select::picker(select){margin-top:8px;padding:6px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);box-shadow:0 12px 28px -12px rgba(22,40,59,.35)}
+      .lesson-search select option{gap:10px;min-height:44px;padding:10px 12px;border-radius:7px;font:500 15px "Space Grotesk",sans-serif}
+      .lesson-search select option:hover,.lesson-search select option:focus-visible{outline:none;background:var(--accent-soft)}
+      .lesson-search select option:checked{background:var(--accent-soft);color:var(--accent);font-weight:700}
+      .lesson-search select option::checkmark{color:var(--accent)}
+      .lesson-search select:open{border-color:var(--accent)}
+    }
+    @media(max-width:560px){.search-controls{grid-template-columns:minmax(0,1fr)}}
     .lesson-search input{width:100%;padding:13px 15px;border:1.5px solid var(--line);border-radius:8px;color:var(--ink);background:var(--surface-alt);font:17px "Public Sans",sans-serif;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease,transform .15s ease}
     .lesson-search input:hover{border-color:var(--accent);background:var(--panel);box-shadow:0 7px 18px -12px rgba(11,143,107,.7);transform:translateY(-1px)}
     .lesson-search input:focus{outline:3px solid var(--accent-soft);border-color:var(--accent)}
@@ -158,9 +179,25 @@
     </header>
 
     <div class="lesson-search" role="search">
-      <label for="lessonSearch">Search every lesson</label>
-      <input id="lessonSearch" type="search" placeholder="Try: crosstalk, voltage, odometry, PID…" autocomplete="off">
-      <div class="search-status" id="searchStatus" aria-live="polite">Type a keyword to search lesson text.</div>
+      <div class="search-controls">
+        <div>
+          <label for="lessonSearch">Search lessons &amp; design</label>
+          <input id="lessonSearch" type="search" placeholder="Try: crosstalk, voltage, odometry, PID…" autocomplete="off" aria-controls="searchResults" aria-describedby="searchStatus">
+        </div>
+        <div>
+          <label for="lessonCategory">Category</label>
+          <div class="category-select">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+            <select id="lessonCategory" aria-controls="searchResults">
+              <option value="all">All categories</option>
+              <option value="programming">Programming &amp; Controls</option>
+              <option value="electrical">Electrical</option>
+              <option value="design">Design</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="search-status" id="searchStatus" aria-live="polite">Type a keyword or choose a category.</div>
       <div class="search-results" id="searchResults"></div>
       <section class="search-easter-egg" id="searchEasterEgg" aria-label="Search surprise" hidden>
         <h3 class="egg-title"></h3>
@@ -173,7 +210,7 @@
     </div>
 
     <h2 class="section-title">Programming &amp; Controls</h2>
-    <ul class="pages">
+    <ul class="pages" data-category="programming">
       <li>
         <a href="boxes-arrows-circles-block-diagrams.html">
           <span class="num">Lesson 01 · start here</span>
@@ -225,7 +262,7 @@
     </ul>
 
     <h2 class="section-title">Electrical</h2>
-    <ul class="pages">
+    <ul class="pages" data-category="electrical">
       <li>
         <a href="basics-of-electricity.html">
           <span class="num">Lesson 07</span>
@@ -255,11 +292,28 @@
     <h2 class="section-title" id="utilities">Utilities</h2>
     <ul class="pages">
       <li>
-        <a href="pully-generator/index.html" data-utility>
+        <a href="pully-generator/index.html" data-utility data-category="design">
           <span class="num">Utility 01</span>
           <span class="title">Pully-Generator</span>
           <span class="desc">Design custom HTD timing pulleys with a live 3D preview, configurable hex bores,
             tube inserts, and bearing cones. Export STEP or STL files in inches or millimeters.</span>
+        </a>
+      </li>
+    </ul>
+    <h2 class="section-title" id="resources">Resources</h2>
+    <ul class="pages">
+      <li>
+        <a href="https://www.chiefdelphi.com/" data-resource>
+          <span class="num">Community forum</span>
+          <span class="title">Chief Delphi</span>
+          <span class="desc">Explore robot build threads, ask technical questions, and learn from the FRC community.</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://www.frcdesign.org/" data-resource data-category="design">
+          <span class="num">Design &amp; CAD</span>
+          <span class="title">FRCDesign.org</span>
+          <span class="desc">Learn FRC robot design with Onshape tutorials, a design handbook, and mechanism examples.</span>
         </a>
       </li>
     </ul>
@@ -276,13 +330,13 @@
   <script>
     (function () {
       "use strict";
-      const input=document.getElementById("lessonSearch"),status=document.getElementById("searchStatus"),results=document.getElementById("searchResults");
-      const cards=[...document.querySelectorAll("ul.pages a:not([data-utility])")].map((link,order)=>({href:link.getAttribute("href"),title:link.querySelector(".title").textContent.trim(),order}));
+      const input=document.getElementById("lessonSearch"),category=document.getElementById("lessonCategory"),status=document.getElementById("searchStatus"),results=document.getElementById("searchResults");
+      const cards=[...document.querySelectorAll("ul.pages[data-category] a,ul.pages a[data-category]")].map((link,order)=>({href:link.getAttribute("href"),title:link.querySelector(".title").textContent.trim(),description:link.querySelector(".desc").textContent.trim(),category:link.dataset.category||link.closest("ul.pages").dataset.category,previewOnly:link.hasAttribute("data-utility")||link.hasAttribute("data-resource"),order}));
       let lessons=null,loading=null,timer=0;
       function loadLessons(){
         if(lessons)return Promise.resolve(lessons);if(loading)return loading;
-        status.textContent="Loading lesson text…";
-        loading=Promise.all(cards.map(async card=>{const response=await fetch(card.href);if(!response.ok)throw new Error("Could not load "+card.href);const doc=new DOMParser().parseFromString(await response.text(),"text/html");const blocks=[...doc.querySelectorAll("h1,h2,p,.callout,.hint,.cap,.def")].map(node=>node.textContent.replace(/\s+/g," ").trim()).filter(Boolean);return{...card,blocks}})).then(data=>lessons=data);
+        status.textContent="Loading search content…";
+        loading=Promise.all(cards.map(async card=>{if(card.previewOnly)return{...card,blocks:[card.title,card.description]};const response=await fetch(card.href);if(!response.ok)throw new Error("Could not load "+card.href);const doc=new DOMParser().parseFromString(await response.text(),"text/html");const blocks=[...doc.querySelectorAll("h1,h2,p,.callout,.hint,.cap,.def")].map(node=>node.textContent.replace(/\s+/g," ").trim()).filter(Boolean);return{...card,blocks}})).then(data=>lessons=data).catch(error=>{loading=null;throw error});
         return loading;
       }
       function snippet(text,query){
@@ -291,19 +345,23 @@
         while(found!==-1){fragment.append(excerpt.slice(cursor,found));const mark=document.createElement("mark");mark.textContent=excerpt.slice(found,found+query.length);fragment.append(mark);cursor=found+query.length;found=lower.indexOf(needle,cursor)}
         fragment.append(excerpt.slice(cursor));return fragment;
       }
+      function showLessons(lessons,query){
+        lessons.forEach(lesson=>{const link=document.createElement("a");link.className="search-result";link.href=lesson.href+(query&&!lesson.previewOnly?"?search="+encodeURIComponent(query):"");const head=document.createElement("div");head.className="result-head";const title=document.createElement("span");title.textContent=lesson.title;head.append(title);if(query){const count=document.createElement("span");count.className="result-count";count.textContent=lesson.count+" match"+(lesson.count===1?"":"es");head.append(count)}link.append(head);if(query)lesson.matching.slice(0,2).forEach(block=>{const line=document.createElement("div");line.className="search-snippet";line.append(snippet(block,query));link.append(line)});else{const line=document.createElement("div");line.className="search-snippet";line.textContent=lesson.description;link.append(line)}results.append(link)});
+      }
       async function search(){
-        const query=input.value.trim();results.replaceChildren();
+        const query=input.value.trim(),selectedCategory=category.value,scope=selectedCategory==="all"?"":" in "+category.selectedOptions[0].textContent,item=selectedCategory==="programming"||selectedCategory==="electrical"?"lesson":"result";results.replaceChildren();
         const surprise=window.searchEasterEgg.show(query);
-        if(query.length<2){status.textContent=query?"Type at least two characters.":"Type a keyword to search lesson text.";return}
+        if(!query&&selectedCategory!=="all"){const filtered=cards.filter(lesson=>lesson.category===selectedCategory);status.textContent=filtered.length+" "+item+(filtered.length===1?"":"s")+scope+". Type a keyword to narrow the results.";showLessons(filtered,"");return}
+        if(query.length<2){status.textContent=query?"Type at least two characters.":"Type a keyword or choose a category.";return}
         try{
-          const data=await loadLessons();if(input.value.trim()!==query)return;const needle=query.toLocaleLowerCase();
-          const found=data.map(lesson=>{let count=0;const matching=[];lesson.blocks.forEach(block=>{const lower=block.toLocaleLowerCase();let at=lower.indexOf(needle);if(at!==-1)matching.push(block);while(at!==-1){count++;at=lower.indexOf(needle,at+needle.length)}});return{...lesson,count,matching}}).filter(lesson=>lesson.count).sort((a,b)=>b.count-a.count||a.order-b.order);
-          status.textContent=found.length?found.length+" lesson"+(found.length===1?"":"s")+" contain “"+query+"”. Select one to see every match.":surprise?"Bonus task unlocked.":"No lesson contains “"+query+"”.";
-          found.forEach(lesson=>{const link=document.createElement("a");link.className="search-result";link.href=lesson.href+"?search="+encodeURIComponent(query);const head=document.createElement("div");head.className="result-head";const title=document.createElement("span");title.textContent=lesson.title;const count=document.createElement("span");count.className="result-count";count.textContent=lesson.count+" match"+(lesson.count===1?"":"es");head.append(title,count);link.append(head);lesson.matching.slice(0,2).forEach(block=>{const line=document.createElement("div");line.className="search-snippet";line.append(snippet(block,query));link.append(line)});results.append(link)});
-        }catch(error){if(input.value.trim()===query)status.textContent=surprise?"Bonus task unlocked.":"Lesson search could not load. Refresh the page and try again."}
+          const data=selectedCategory==="design"?cards.filter(card=>card.category==="design").map(card=>({...card,blocks:[card.title,card.description]})):await loadLessons();if(input.value.trim()!==query||category.value!==selectedCategory)return;const needle=query.toLocaleLowerCase();
+          const found=data.filter(lesson=>selectedCategory==="all"||lesson.category===selectedCategory).map(lesson=>{let count=0;const matching=[];lesson.blocks.forEach(block=>{const lower=block.toLocaleLowerCase();let at=lower.indexOf(needle);if(at!==-1)matching.push(block);while(at!==-1){count++;at=lower.indexOf(needle,at+needle.length)}});return{...lesson,count,matching}}).filter(lesson=>lesson.count).sort((a,b)=>b.count-a.count||a.order-b.order);
+          status.textContent=found.length?found.length+" "+item+(found.length===1?"":"s")+scope+(found.length===1?" contains":" contain")+" “"+query+"”. Select a result to open it.":surprise?"Bonus task unlocked.":"No "+item+scope+" contains “"+query+"”.";
+          showLessons(found,query);
+        }catch(error){if(input.value.trim()===query&&category.value===selectedCategory)status.textContent=surprise?"Bonus task unlocked.":"Search could not load. Please try again."}
       }
       input.addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(search,140)});
-      input.addEventListener("focus",()=>loadLessons().catch(()=>{}),{once:true});
+      category.addEventListener("change",()=>{clearTimeout(timer);search()});
     })();
   </script>
 </body>

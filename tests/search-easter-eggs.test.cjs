@@ -15,14 +15,15 @@ function setup(reduced=false) {
   }
   const title=element(),caption=element(),stage=element(),button=element(),credit=element(),overlay=element();
   const root={hidden:true,querySelector:selector=>({'.egg-title':title,'.egg-caption':caption,'.egg-stage':stage,'.egg-action':button,'.egg-credit':credit})[selector]};
-  const input=element(),status=element(),results={replaceChildren(){}};
+  const input=element(),category=element(),status=element(),results={replaceChildren(){}};
+  category.value='all';
   const motion={matches:reduced,addEventListener(name,handler){this.onchange=handler}};
   const statsCalls=[];
   const window={matchMedia:()=>motion,searchTeamStats:{show:kind=>statsCalls.push(kind),clear:()=>statsCalls.push('clear')}};
   let fetches=0;
   const document=element();
-  document.getElementById=id=>({searchEasterEgg:root,lessonSearch:input,searchStatus:status,searchResults:results,searchEggOverlay:overlay})[id];
-  document.querySelectorAll=()=>[{getAttribute:()=> 'close-the-loop-pid-control.html',querySelector:()=>({textContent:'PID control'})}];
+  document.getElementById=id=>({searchEasterEgg:root,lessonSearch:input,lessonCategory:category,searchStatus:status,searchResults:results,searchEggOverlay:overlay})[id];
+  document.querySelectorAll=()=>[{getAttribute:()=> 'close-the-loop-pid-control.html',querySelector:()=>({textContent:'PID control'}),dataset:{},hasAttribute:()=>false,closest:()=>({dataset:{category:'programming'}})}];
   const context={window,document,Date:{now:()=>now},setTimeout(callback,delay){const id=++sequence;timers.set(id,{callback,delay});return id},clearTimeout:id=>timers.delete(id),
     fetch:async()=>{fetches++;return{ok:true,text:async()=>''}},DOMParser:class{parseFromString(){return{querySelectorAll:()=>[]}}}};
   vm.createContext(context);
@@ -109,10 +110,10 @@ test('ordinary input cancels the effect immediately, before the search debounce'
     await page.type(phrase);
     assert.equal(page.root.hidden,true,phrase);
     assert.equal(page.overlay.innerHTML,'');
-    assert.match(page.status.textContent,/No lesson contains/);
+    assert.match(page.status.textContent,/No result contains/);
   }
   await page.type('');
-  assert.equal(page.status.textContent,'Type a keyword to search lesson text.');
+  assert.equal(page.status.textContent,'Type a keyword or choose a category.');
 });
 
 test('effects finish, optional replay repeats the same effect, and aliases do not restart it',async()=>{
