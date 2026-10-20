@@ -1,0 +1,23 @@
+.search-easter-egg[hidden]{display:none}
+.search-easter-egg{margin-top:16px;padding:18px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.egg-title{font:700 20px "Space Grotesk",system-ui,sans-serif;color:var(--ink)}
+.egg-stage{height:164px;margin:14px 0;border-radius:8px;overflow:hidden;display:grid;place-items:center;background-color:#121F34;background-image:radial-gradient(circle at 15% 24%,#E5EDFF 0 1px,transparent 2px),radial-gradient(circle at 73% 18%,#E5EDFF 0 1px,transparent 2px),radial-gradient(circle at 87% 73%,#E5EDFF 0 1px,transparent 2px),radial-gradient(circle at 35% 82%,#829FCA 0 1px,transparent 2px);position:relative}
+.egg-crewmate{display:block;width:auto;height:136px;object-fit:contain;transform:rotate(-12deg)}
+.egg-caption{min-height:48px;font-size:14px;line-height:1.55;color:var(--muted)}
+.search-easter-egg .egg-action{margin-top:12px;min-height:40px;padding:9px 15px;border:0;border-radius:7px;background:#C5A8FF;color:#162033;font:600 14px "Space Grotesk",system-ui,sans-serif;cursor:pointer}
+.search-easter-egg .egg-action:hover{background:#D8C4FF}
+.search-easter-egg .egg-action:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.search-easter-egg .egg-action:disabled{opacity:.65;cursor:wait}
+.egg-symbol{display:block;width:104px;height:104px;padding:12px;border-radius:14px;background:#E9EEF6;box-sizing:content-box}
+.egg-team-logo{width:136px;height:136px;padding:6px;object-fit:contain;background:#fff}
+.egg-credit{margin-top:12px;font:10px "IBM Plex Mono",monospace;color:var(--muted)}
+.egg-credit a{color:inherit;text-underline-offset:2px}
+.egg-crew.is-active .egg-crewmate{animation:crew-eject 1.4s ease-in-out}
+.egg-spin.is-active .egg-symbol{animation:gear-roll 1.4s ease-in-out}
+.egg-scan.is-active .egg-symbol{animation:robot-boop .35s steps(2) 4}
+.egg-pulse.is-active .egg-symbol{animation:answer-pulse .7s ease-in-out 2}
+@keyframes crew-eject{0%{transform:translateX(0) rotate(-12deg)}45%{transform:translateX(220px) rotate(200deg);opacity:0}46%{transform:translateX(-220px) rotate(-200deg);opacity:0}100%{transform:translateX(0) rotate(-12deg);opacity:1}}
+@keyframes gear-roll{to{transform:rotate(360deg)}}
+@keyframes robot-boop{50%{opacity:.15}}
+@keyframes answer-pulse{50%{transform:scale(1.12);color:#C5A8FF}}
+@media(prefers-reduced-motion:reduce){.egg-stage *, .egg-stage.is-active *{animation:none!important}}

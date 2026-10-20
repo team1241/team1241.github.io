@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
+<script src="theme.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Team 1241 — Resources</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -120,12 +121,33 @@
 
     .lesson-search{margin-top:36px;padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 10px 30px -20px rgba(22,40,59,.35)}
     .lesson-search label{display:block;margin-bottom:8px;font:600 13px "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase}
-    .lesson-search input{width:100%;padding:13px 15px;border:1.5px solid var(--line);border-radius:8px;color:var(--ink);background:#FBFDFE;font:17px "Public Sans",sans-serif;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease,transform .15s ease}
-    .lesson-search input:hover{border-color:var(--accent);background:#fff;box-shadow:0 7px 18px -12px rgba(11,143,107,.7);transform:translateY(-1px)}
+    .search-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,270px);gap:12px;align-items:end}
+    .search-controls>div{min-width:0}
+    .search-controls input{min-width:0;min-height:54px}
+    .category-select{position:relative}
+    .category-select svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--accent);pointer-events:none}
+    .category-select::after{content:"";position:absolute;right:18px;top:22px;width:7px;height:7px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(45deg);pointer-events:none}
+    .lesson-search select{appearance:none;width:100%;min-height:54px;padding:14px 38px 14px 44px;border:1.5px solid var(--line);border-radius:10px;color:var(--accent);background:var(--accent-soft);font:600 15px "Space Grotesk",sans-serif;cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease}
+    .lesson-search select:hover{border-color:var(--accent)}
+    .lesson-search select:focus-visible{outline:3px solid var(--accent-soft);outline-offset:3px;border-color:var(--accent)}
+    .lesson-search select option{color:var(--ink);background:var(--panel)}
+    @supports (appearance:base-select){
+      .lesson-search select,.lesson-search select::picker(select){appearance:base-select}
+      .lesson-search select::picker-icon{display:none}
+      .lesson-search select::picker(select){margin-top:8px;padding:6px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);box-shadow:0 12px 28px -12px rgba(22,40,59,.35)}
+      .lesson-search select option{gap:10px;min-height:44px;padding:10px 12px;border-radius:7px;font:500 15px "Space Grotesk",sans-serif}
+      .lesson-search select option:hover,.lesson-search select option:focus-visible{outline:none;background:var(--accent-soft)}
+      .lesson-search select option:checked{background:var(--accent-soft);color:var(--accent);font-weight:700}
+      .lesson-search select option::checkmark{color:var(--accent)}
+      .lesson-search select:open{border-color:var(--accent)}
+    }
+    @media(max-width:560px){.search-controls{grid-template-columns:minmax(0,1fr)}}
+    .lesson-search input{width:100%;padding:13px 15px;border:1.5px solid var(--line);border-radius:8px;color:var(--ink);background:var(--surface-alt);font:17px "Public Sans",sans-serif;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease,transform .15s ease}
+    .lesson-search input:hover{border-color:var(--accent);background:var(--panel);box-shadow:0 7px 18px -12px rgba(11,143,107,.7);transform:translateY(-1px)}
     .lesson-search input:focus{outline:3px solid var(--accent-soft);border-color:var(--accent)}
     .search-status{min-height:24px;margin-top:9px;color:var(--muted);font:12.5px "IBM Plex Mono",monospace}
     .search-results{display:grid;gap:10px;margin-top:10px}
-    .search-result{display:block;padding:14px 16px;border:1px solid var(--line);border-radius:8px;color:inherit;text-decoration:none;background:#FBFDFE}
+    .search-result{display:block;padding:14px 16px;border:1px solid var(--line);border-radius:8px;color:inherit;text-decoration:none;background:var(--surface-alt)}
     .search-result:hover{border-color:var(--accent);background:var(--accent-soft)}
     .result-head{display:flex;justify-content:space-between;gap:12px;font-family:"Space Grotesk",sans-serif;font-weight:700}
     .result-count{flex:none;color:var(--accent);font:600 11px "IBM Plex Mono",monospace;text-transform:uppercase}
@@ -136,24 +158,59 @@
       .lesson-search input:hover{transform:none}
     }
   </style>
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="search-easter-eggs.css?v=28787c66aecf">
+  <link rel="stylesheet" href="search-egg-scenes.css?v=02f3c3259d15">
+  <link rel="stylesheet" href="search-egg-effects.css?v=1fd0e9827192">
+  <link rel="stylesheet" href="search-cnc-effects.css?v=c317fb2f2af9">
+  <link rel="stylesheet" href="search-component-effects.css?v=2251a3c8518b">
+  <link rel="stylesheet" href="search-team-effects.css?v=0ebc31b33110">
+  <link rel="stylesheet" href="search-team-stats.css?v=38be0f2c8f58">
 </head>
 
 <body>
   <div class="wrap">
-    <header>
+    <header class="site-header">
+      <div>
       <h1>Team 1241 — Resources</h1>
-      <p>FRC Team 1241 · notes &amp; interactive lessons</p>
+      <p>FRC Team 1241 · notes, interactive lessons &amp; utilities</p>
+      </div>
+      <button class="site-theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode" aria-pressed="false">☾ Dark mode</button>
     </header>
 
     <div class="lesson-search" role="search">
-      <label for="lessonSearch">Search every lesson</label>
-      <input id="lessonSearch" type="search" placeholder="Try: crosstalk, voltage, odometry, PID…" autocomplete="off">
-      <div class="search-status" id="searchStatus" aria-live="polite">Type a keyword to search lesson text.</div>
+      <div class="search-controls">
+        <div>
+          <label for="lessonSearch">Search lessons &amp; design</label>
+          <input id="lessonSearch" type="search" placeholder="Try: crosstalk, voltage, odometry, PID…" autocomplete="off" aria-controls="searchResults" aria-describedby="searchStatus">
+        </div>
+        <div>
+          <label for="lessonCategory">Category</label>
+          <div class="category-select">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+            <select id="lessonCategory" aria-controls="searchResults">
+              <option value="all">All categories</option>
+              <option value="programming">Programming &amp; Controls</option>
+              <option value="electrical">Electrical</option>
+              <option value="design">Design</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="search-status" id="searchStatus" aria-live="polite">Type a keyword or choose a category.</div>
       <div class="search-results" id="searchResults"></div>
+      <section class="search-easter-egg" id="searchEasterEgg" aria-label="Search surprise" hidden>
+        <h3 class="egg-title"></h3>
+        <div class="egg-stage" hidden></div>
+        <p class="egg-caption" aria-live="polite"></p>
+        <div class="egg-team-stats" id="searchTeamStats" aria-live="polite" hidden></div>
+        <button class="egg-action" type="button"></button>
+        <p class="egg-credit">Icons by <a href="https://openmoji.org/">OpenMoji</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></p>
+      </section>
     </div>
 
     <h2 class="section-title">Programming &amp; Controls</h2>
-    <ul class="pages">
+    <ul class="pages" data-category="programming">
       <li>
         <a href="boxes-arrows-circles-block-diagrams.html">
           <span class="num">Lesson 01 · start here</span>
@@ -205,7 +262,7 @@
     </ul>
 
     <h2 class="section-title">Electrical</h2>
-    <ul class="pages">
+    <ul class="pages" data-category="electrical">
       <li>
         <a href="basics-of-electricity.html">
           <span class="num">Lesson 07</span>
@@ -231,17 +288,63 @@
         </a>
       </li>
     </ul>
+
+    <h2 class="section-title" id="utilities">Utilities</h2>
+    <ul class="pages">
+      <li>
+        <a href="pulley-generator/index.html" data-utility data-category="design">
+          <span class="num">Utility 01</span>
+          <span class="title">Pulley Generator</span>
+          <span class="desc">Design printable HTD timing pulleys with configurable flanges, tube inserts,
+            bearing cones, and one- or two-sided WCP press-fit insert pockets. Export STEP or STL files.</span>
+        </a>
+      </li>
+      <li>
+        <a href="spacer-generator/index.html" data-utility data-category="design">
+          <span class="num">Utility 02</span>
+          <span class="title">Hex Spacer Generator</span>
+          <span class="desc">Generate WCP-style 1/2-inch and 3/8-inch hex spacers with print clearance.
+            Import two length lists and export a complete STEP or STL ZIP.</span>
+        </a>
+      </li>
+    </ul>
+    <h2 class="section-title" id="resources">Resources</h2>
+    <ul class="pages">
+      <li>
+        <a href="https://www.chiefdelphi.com/" data-resource>
+          <span class="num">Community forum</span>
+          <span class="title">Chief Delphi</span>
+          <span class="desc">Explore robot build threads, ask technical questions, and learn from the FRC community.</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://www.frcdesign.org/" data-resource data-category="design">
+          <span class="num">Design &amp; CAD</span>
+          <span class="title">FRCDesign.org</span>
+          <span class="desc">Learn FRC robot design with Onshape tutorials, a design handbook, and mechanism examples.</span>
+        </a>
+      </li>
+    </ul>
   </div>
+  <div id="searchEggOverlay" class="egg-screen-overlay" hidden aria-hidden="true"></div>
+  <script src="search-team-effects.js?v=7fcf309de5a1"></script>
+  <script src="search-team-stats.js?v=69083ca713b9"></script>
+  <script src="search-egg-catalog.js?v=c9d7c0f6a527"></script>
+  <script src="search-egg-scenes.js?v=3225cd99b2b5"></script>
+  <script src="search-component-effects.js?v=5ab89d0aa2a4"></script>
+  <script src="search-cnc-effects.js?v=1f5c9109aa69"></script>
+  <script src="search-egg-effects.js?v=eac44b94b5eb"></script>
+  <script src="search-easter-eggs.js?v=9b6eaeaee3b4"></script>
   <script>
     (function () {
       "use strict";
-      const input=document.getElementById("lessonSearch"),status=document.getElementById("searchStatus"),results=document.getElementById("searchResults");
-      const cards=[...document.querySelectorAll("ul.pages a")].map((link,order)=>({href:link.getAttribute("href"),title:link.querySelector(".title").textContent.trim(),order}));
+      const input=document.getElementById("lessonSearch"),category=document.getElementById("lessonCategory"),status=document.getElementById("searchStatus"),results=document.getElementById("searchResults");
+      const cards=[...document.querySelectorAll("ul.pages[data-category] a,ul.pages a[data-category]")].map((link,order)=>({href:link.getAttribute("href"),title:link.querySelector(".title").textContent.trim(),description:link.querySelector(".desc").textContent.trim(),category:link.dataset.category||link.closest("ul.pages").dataset.category,previewOnly:link.hasAttribute("data-utility")||link.hasAttribute("data-resource"),order}));
       let lessons=null,loading=null,timer=0;
       function loadLessons(){
         if(lessons)return Promise.resolve(lessons);if(loading)return loading;
-        status.textContent="Loading lesson text…";
-        loading=Promise.all(cards.map(async card=>{const response=await fetch(card.href);if(!response.ok)throw new Error("Could not load "+card.href);const doc=new DOMParser().parseFromString(await response.text(),"text/html");const blocks=[...doc.querySelectorAll("h1,h2,p,.callout,.hint,.cap,.def")].map(node=>node.textContent.replace(/\s+/g," ").trim()).filter(Boolean);return{...card,blocks}})).then(data=>lessons=data);
+        status.textContent="Loading search content…";
+        loading=Promise.all(cards.map(async card=>{if(card.previewOnly)return{...card,blocks:[card.title,card.description]};const response=await fetch(card.href);if(!response.ok)throw new Error("Could not load "+card.href);const doc=new DOMParser().parseFromString(await response.text(),"text/html");const blocks=[...doc.querySelectorAll("h1,h2,p,.callout,.hint,.cap,.def")].map(node=>node.textContent.replace(/\s+/g," ").trim()).filter(Boolean);return{...card,blocks}})).then(data=>lessons=data).catch(error=>{loading=null;throw error});
         return loading;
       }
       function snippet(text,query){
@@ -250,18 +353,23 @@
         while(found!==-1){fragment.append(excerpt.slice(cursor,found));const mark=document.createElement("mark");mark.textContent=excerpt.slice(found,found+query.length);fragment.append(mark);cursor=found+query.length;found=lower.indexOf(needle,cursor)}
         fragment.append(excerpt.slice(cursor));return fragment;
       }
+      function showLessons(lessons,query){
+        lessons.forEach(lesson=>{const link=document.createElement("a");link.className="search-result";link.href=lesson.href+(query&&!lesson.previewOnly?"?search="+encodeURIComponent(query):"");const head=document.createElement("div");head.className="result-head";const title=document.createElement("span");title.textContent=lesson.title;head.append(title);if(query){const count=document.createElement("span");count.className="result-count";count.textContent=lesson.count+" match"+(lesson.count===1?"":"es");head.append(count)}link.append(head);if(query)lesson.matching.slice(0,2).forEach(block=>{const line=document.createElement("div");line.className="search-snippet";line.append(snippet(block,query));link.append(line)});else{const line=document.createElement("div");line.className="search-snippet";line.textContent=lesson.description;link.append(line)}results.append(link)});
+      }
       async function search(){
-        const query=input.value.trim();results.replaceChildren();
-        if(query.length<2){status.textContent=query?"Type at least two characters.":"Type a keyword to search lesson text.";return}
+        const query=input.value.trim(),selectedCategory=category.value,scope=selectedCategory==="all"?"":" in "+category.selectedOptions[0].textContent,item=selectedCategory==="programming"||selectedCategory==="electrical"?"lesson":"result";results.replaceChildren();
+        const surprise=window.searchEasterEgg.show(query);
+        if(!query&&selectedCategory!=="all"){const filtered=cards.filter(lesson=>lesson.category===selectedCategory);status.textContent=filtered.length+" "+item+(filtered.length===1?"":"s")+scope+". Type a keyword to narrow the results.";showLessons(filtered,"");return}
+        if(query.length<2){status.textContent=query?"Type at least two characters.":"Type a keyword or choose a category.";return}
         try{
-          const data=await loadLessons();if(input.value.trim()!==query)return;const needle=query.toLocaleLowerCase();
-          const found=data.map(lesson=>{let count=0;const matching=[];lesson.blocks.forEach(block=>{const lower=block.toLocaleLowerCase();let at=lower.indexOf(needle);if(at!==-1)matching.push(block);while(at!==-1){count++;at=lower.indexOf(needle,at+needle.length)}});return{...lesson,count,matching}}).filter(lesson=>lesson.count).sort((a,b)=>b.count-a.count||a.order-b.order);
-          status.textContent=found.length?found.length+" lesson"+(found.length===1?"":"s")+" contain “"+query+"”. Select one to see every match.":"No lesson contains “"+query+"”.";
-          found.forEach(lesson=>{const link=document.createElement("a");link.className="search-result";link.href=lesson.href+"?search="+encodeURIComponent(query);const head=document.createElement("div");head.className="result-head";const title=document.createElement("span");title.textContent=lesson.title;const count=document.createElement("span");count.className="result-count";count.textContent=lesson.count+" match"+(lesson.count===1?"":"es");head.append(title,count);link.append(head);lesson.matching.slice(0,2).forEach(block=>{const line=document.createElement("div");line.className="search-snippet";line.append(snippet(block,query));link.append(line)});results.append(link)});
-        }catch(error){status.textContent="Lesson search could not load. Refresh the page and try again."}
+          const data=selectedCategory==="design"?cards.filter(card=>card.category==="design").map(card=>({...card,blocks:[card.title,card.description]})):await loadLessons();if(input.value.trim()!==query||category.value!==selectedCategory)return;const needle=query.toLocaleLowerCase();
+          const found=data.filter(lesson=>selectedCategory==="all"||lesson.category===selectedCategory).map(lesson=>{let count=0;const matching=[];lesson.blocks.forEach(block=>{const lower=block.toLocaleLowerCase();let at=lower.indexOf(needle);if(at!==-1)matching.push(block);while(at!==-1){count++;at=lower.indexOf(needle,at+needle.length)}});return{...lesson,count,matching}}).filter(lesson=>lesson.count).sort((a,b)=>b.count-a.count||a.order-b.order);
+          status.textContent=found.length?found.length+" "+item+(found.length===1?"":"s")+scope+(found.length===1?" contains":" contain")+" “"+query+"”. Select a result to open it.":surprise?"Bonus task unlocked.":"No "+item+scope+" contains “"+query+"”.";
+          showLessons(found,query);
+        }catch(error){if(input.value.trim()===query&&category.value===selectedCategory)status.textContent=surprise?"Bonus task unlocked.":"Search could not load. Please try again."}
       }
       input.addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(search,140)});
-      input.addEventListener("focus",loadLessons,{once:true});
+      category.addEventListener("change",()=>{clearTimeout(timer);search()});
     })();
   </script>
 </body>

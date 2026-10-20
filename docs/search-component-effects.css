@@ -1,0 +1,32 @@
+.egg-component-screen{position:absolute;inset:0;width:100%;height:100%}
+.egg-kraken-arrival{animation:kraken-arrive 3.8s cubic-bezier(.2,.8,.25,1) both}
+.egg-kraken-can{stroke-dasharray:340;animation:kraken-connect 3.8s ease both}
+.egg-kraken-build{stroke-dasharray:178;animation:kraken-build 3.8s steps(7,end) both}
+.egg-swerve-wheel{transform-box:fill-box;transform-origin:center;animation:swerve-steer 3.8s ease both}
+.egg-swerve-body{animation:swerve-strafe 3.8s ease-in-out both}
+.egg-swerve-strafe{animation:swerve-arrows 3.8s ease both}
+.egg-swerve-claw{transform-box:view-box;transform-origin:0 0;animation:swerve-claws 3.8s ease both}
+.egg-swerve-eyes{animation:swerve-eyes 3.8s ease both}
+.egg-component-response{animation:component-response 3.6s ease both}
+.egg-limelight-camera{animation:component-arrive 3.6s ease both}
+.egg-limelight-beam{transform-origin:376px 677px;animation:vision-sweep 3.6s ease both}
+.egg-vision-lock{animation:vision-lock 3.6s ease both}
+@keyframes kraken-arrive{0%{opacity:0;transform:translate(-130px,30px) rotate(-12deg)}22%,100%{opacity:1;transform:translate(0) rotate(0)}}
+@keyframes kraken-connect{0%,24%{stroke-dashoffset:340;opacity:0}45%,100%{stroke-dashoffset:0;opacity:1}}
+@keyframes kraken-build{0%,50%{stroke-dashoffset:178}85%,100%{stroke-dashoffset:35}}
+@keyframes swerve-steer{0%,8%{transform:rotate(0)}25%,90%{transform:rotate(90deg)}100%{transform:rotate(0)}}
+@keyframes swerve-strafe{0%,27%{transform:translateX(0)}45%{transform:translateX(-140px)}72%{transform:translateX(140px)}90%,100%{transform:translateX(0)}}
+@keyframes swerve-arrows{0%,24%{opacity:0;stroke-dashoffset:80}35%,85%{opacity:.65;stroke-dashoffset:0}100%{opacity:0}}
+@keyframes swerve-claws{0%,12%{opacity:0;transform:scale(.01)}26%,85%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.01)}}
+@keyframes swerve-eyes{0%,12%{opacity:0;transform:translateY(20px)}26%,85%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(20px)}}
+@keyframes component-response{0%,45%{opacity:0;transform:translateY(8px)}65%,100%{opacity:1;transform:translateY(0)}}
+@keyframes component-arrive{0%{opacity:0;transform:translateY(50px)}20%,100%{opacity:1;transform:translateY(0)}}
+@keyframes vision-sweep{0%{transform:rotate(-18deg);opacity:0}25%{transform:rotate(12deg);opacity:1}58%{transform:rotate(-8deg)}75%,100%{transform:rotate(0);opacity:1}}
+@keyframes vision-lock{0%,66%{opacity:0;transform:translate(25px,-18px)}78%{opacity:1;transform:translate(0)}86%{opacity:.2}95%,100%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.egg-component-screen *{animation:none!important}}
+
+.egg-cancoder-shaft{transform-origin:720px 685px;animation:encoder-turn 3.6s ease both}
+.egg-cancoder-arc{stroke-dasharray:377;animation:encoder-arc 3.6s linear both}
+.egg-cancoder-offset{animation:component-response 3.6s ease both}
+@keyframes encoder-turn{0%,15%{transform:rotate(0)}60%,100%{transform:rotate(270deg)}}
+@keyframes encoder-arc{0%,15%{stroke-dashoffset:377}85%,100%{stroke-dashoffset:0}}
