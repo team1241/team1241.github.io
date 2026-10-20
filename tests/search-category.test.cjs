@@ -29,7 +29,7 @@ function setup({deferFetch = false} = {}) {
   let release;
   const pending=deferFetch?new Promise(resolve=>{release=resolve}):Promise.resolve();
   const context={document, window:{searchEasterEgg:{show:()=>false}},
-    fetch:async href=>{assert.ok(!href.startsWith('https:')&&!href.includes('pully-generator'),'Only lesson pages should be fetched');calls++;await pending;return {ok:true, text:async()=>'Shared voltage lesson text'}},
+    fetch:async href=>{assert.ok(!href.startsWith('https:')&&!href.includes('-generator'),'Only lesson pages should be fetched');calls++;await pending;return {ok:true, text:async()=>'Shared voltage lesson text'}},
     DOMParser:class{parseFromString(text){return {querySelectorAll:()=>[{textContent:text}]}}},
     setTimeout:callback=>{timer=callback;return 1}, clearTimeout:()=>{timer=null}};
   vm.runInNewContext([...html.matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1], context);
@@ -74,15 +74,18 @@ test('category and keyword filters combine, restore all results, and preserve hi
 test('Design browses and searches existing design tools and resources without fetching their pages', async()=>{
   const page=setup();
   await page.choose('design');
-  assert.equal(page.results.children.length,2);
-  assert.match(page.status.textContent,/2 results in Design/);
-  assert.deepEqual(page.results.children.map(link=>link.href),['pully-generator/index.html','https://www.frcdesign.org/']);
+  assert.equal(page.results.children.length,3);
+  assert.match(page.status.textContent,/3 results in Design/);
+  assert.deepEqual(page.results.children.map(link=>link.href),['pulley-generator/index.html','spacer-generator/index.html','https://www.frcdesign.org/']);
   await page.type('Onshape');
   assert.equal(page.results.children.length,1);
   assert.equal(page.results.children[0].href,'https://www.frcdesign.org/');
   await page.type('HTD');
   assert.equal(page.results.children.length,1);
-  assert.equal(page.results.children[0].href,'pully-generator/index.html');
+  assert.equal(page.results.children[0].href,'pulley-generator/index.html');
+  await page.type('spacer');
+  assert.equal(page.results.children.length,1);
+  assert.equal(page.results.children[0].href,'spacer-generator/index.html');
   await page.type('voltage');
   assert.equal(page.results.children.length,0);
   assert.equal(page.calls(),0);

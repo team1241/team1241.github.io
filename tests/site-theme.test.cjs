@@ -9,7 +9,7 @@ function boot({saved, darkSystem=false, blocked=false, href='https://example.tes
   const root={dataset:{},style:{}};
   const button={attributes:{},listeners:{},setAttribute(name,value){this.attributes[name]=value},addEventListener(name,handler){this.listeners[name]=handler}};
   const makeLink=href=>({href,getAttribute(){return this.href},setAttribute(name,value){this.href=value}});
-  const links=[makeLink('pully-generator/index.html'),makeLink('close-the-loop-pid-control.html?search=PID#part2'),makeLink('https://external.test/')];
+  const links=[makeLink('pulley-generator/index.html'),makeLink('spacer-generator/index.html'),makeLink('close-the-loop-pid-control.html?search=PID#part2'),makeLink('https://external.test/')];
   let redraws=0;
   const document={documentElement:root,readyState:'loading',querySelectorAll(selector){return selector==='[data-theme-toggle]'?[button]:selector==='a[href]'?links:selector==='canvas'?[{_redraw(){redraws++}}]:[]},addEventListener(name,handler){domEvents[name]=handler}};
   const system={matches:darkSystem,addEventListener(name,handler){this.change=handler}};
@@ -32,9 +32,10 @@ test('home toggle saves the choice and carries it into lessons and the included 
   assert.equal(page.storage.get('team1241-theme'),'dark');
   assert.equal(page.button.attributes['aria-label'],'Switch to light mode');
   assert.equal(page.button.attributes['aria-pressed'],'true');
-  assert.match(page.links[0].href,/pully-generator\/index.html\?theme=dark/);
-  assert.match(page.links[1].href,/search=PID&theme=dark#part2/);
-  assert.equal(page.links[2].href,'https://external.test/');
+  assert.match(page.links[0].href,/pulley-generator\/index.html\?theme=dark/);
+  assert.match(page.links[1].href,/spacer-generator\/index.html\?theme=dark/);
+  assert.match(page.links[2].href,/search=PID&theme=dark#part2/);
+  assert.equal(page.links[3].href,'https://external.test/');
   const next=boot({saved:page.storage.get('team1241-theme')});
   assert.equal(next.root.dataset.theme,'dark');
 });
@@ -42,7 +43,7 @@ test('home toggle saves the choice and carries it into lessons and the included 
 test('file navigation shares the theme even if storage is blocked',()=>{
   const page=boot({blocked:true,href:'file:///C:/site/index.html?theme=dark'});
   assert.equal(page.root.dataset.theme,'dark');
-  assert.equal(page.links[0].href,'file:///C:/site/pully-generator/index.html?theme=dark');
+  assert.equal(page.links[0].href,'file:///C:/site/pulley-generator/index.html?theme=dark');
   page.button.listeners.click();
   assert.equal(page.root.dataset.theme,'light');
   assert.match(page.location.search,/theme=light/);
@@ -82,9 +83,12 @@ test('every resource page loads the theme and keeps valid inline scripts',()=>{
     assert.match(html,/<link rel="stylesheet" href="theme.css">/,name);
     for(const match of html.matchAll(/<script>([\s\S]*?)<\/script>/g))new vm.Script(match[1],{filename:name});
   }
-  const app=readFileSync('utilities/pully-generator/src/main.jsx','utf8');
+  const app=readFileSync('utilities/pulley-generator/src/main.jsx','utf8');
   assert.ok(!app.includes('className="theme-toggle"'));
   assert.match(app,/window.siteTheme.get\(\)/);
+  const spacerApp=readFileSync('utilities/spacer-generator/src/main.jsx','utf8');
+  assert.ok(!spacerApp.includes('className="theme-toggle"'));
+  assert.match(spacerApp,/window.siteTheme.get\(\)/);
 });
 
 test('Ethernet Widget 1 keeps white stripes while its background follows the theme',()=>{

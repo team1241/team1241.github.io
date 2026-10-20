@@ -1,7 +1,8 @@
 import React,{useId} from 'react';
-import {dimensions,validate} from './parameters.mjs';
+import {dimensions,validate,featureName,PRINT_BORE_CHAMFER} from './parameters.mjs';
 import {formatLength} from './units.mjs';
 import {pulleyOutline,outlineSvgPath} from './profile.mjs';
+import {wcpInsertProfile,WCP_INSERT_OUTER_RADIUS,WCP_INSERT_POCKET_DEPTH} from './wcp-insert-profile.mjs';
 
 export function dimensionRows(p,unit){
   const d=dimensions(p),len=(id,label,value,fields)=>({id,label,value:formatLength(value,unit),fields});
@@ -19,8 +20,10 @@ export function dimensionRows(p,unit){
     {id:'L',label:'Hex orientation',value:`${p.hexAngle.toFixed(1)}°`,fields:['hexAngle']},
     len('M','Groove width adjustment',p.grooveWidth,['grooveWidth']),
     len('N','Groove depth adjustment',p.grooveDepth,['grooveDepth']),
-    ...(p.variant==='tube'?[len('P','Tube insert diameter',p.extensionDiameter,['extensionDiameter']),len('Q','Tube insert length',p.extensionLength,['extensionLength'])]:[]),
-    ...(p.variant==='bearing'?[len('P','Cone base diameter',p.coneBase,['coneBase']),len('Q','Cone length',p.coneLength,['coneLength']),len('R','Bearing contact diameter',p.coneTip,['coneTip'])]:[]),
+    ...(p.tubeEnabled?[len('P','Tube insert diameter',p.extensionDiameter,['extensionDiameter']),len('Q','Tube insert length',p.extensionLength,['extensionLength'])]:[]),
+    ...(p.coneEnabled?[len('R','Cone base diameter',p.coneBase,['coneBase']),len('S','Cone length',p.coneLength,['coneLength']),len('T','Bearing contact diameter',p.coneTip,['coneTip'])]:[]),
+    {id:'U',label:'3D print optimization',value:p.printOptimized?`${formatLength(PRINT_BORE_CHAMFER,unit)} bore chamfers · print-safe checks`:'Off',fields:['printOptimized']},
+    ...(p.insertCount?[{id:'V',label:'WCP-1121 insert pockets',value:p.insertCount===2?'Both sides':`${p.insertSide==='top'?'Top':'Bottom'} side`,fields:['insertCount','insertSide']},len('W','Radial press allowance',p.insertAllowance,['insertAllowance']),len('X','Insert pocket depth',WCP_INSERT_POCKET_DEPTH,['insertCount'])]:[]),
   ];
 }
 export default function Diagram({params:p,active,unit='mm'}){
@@ -36,6 +39,8 @@ export default function Diagram({params:p,active,unit='mm'}){
   const outline=pulleyOutline(p),toothPath=outlineSvgPath(outline,cx,cy,scale);
   const borePoints=Array.from({length:6},(_,i)=>{const a=i*Math.PI/3-p.hexAngle*Math.PI/180;return [d.boreCorners/2*Math.sin(a),d.boreCorners/2*Math.cos(a)];});
   const boreHalf=Math.max(...borePoints.map(([,y])=>Math.abs(y)))*scale;
+  const insertRadius=(WCP_INSERT_OUTER_RADIUS+p.insertAllowance)*scale,insertDepth=WCP_INSERT_POCKET_DEPTH*scale;
+  const insertPath=wcpInsertProfile().map(([x,y],i)=>`${i?'L':'M'}${cx+x*scale} ${cy-y*scale}`).join(' ')+'Z';
   const edgeLevels=[...new Set(outline.filter(c=>c.type==='line'||c.type==='arc').map(c=>c.to[1].toFixed(5)))].map(Number).sort((a,b)=>a-b);
   const Callout=({ids,points,x,y,label})=><g style={{color:color(ids)}} className="drawing-callout"><title>{`${ids} · ${label}`}</title><polyline points={points}/><text x={x} y={y}>{ids}</text></g>;
   const Dim=({id,x1,x2,y,fromY,label})=><g style={{color:color(id)}} className="drawing-dimension"><path className="dimension-extension" d={`M${x1} ${fromY}V${y+5}M${x2} ${fromY}V${y+5}`}/><path d={`M${x1} ${y}H${x2}`} markerStart={`url(#arrow-${uid})`} markerEnd={`url(#arrow-${uid})`}/><text x={(x1+x2)/2} y={y-10} textAnchor="middle">{id} · {label}</text></g>;
@@ -51,12 +56,15 @@ export default function Diagram({params:p,active,unit='mm'}){
           <path className="tooth-outline" d={toothPath} fill="var(--drawing-fill)"/>
           <circle cx={cx} cy={cy} r={pitch} strokeDasharray="6 4"/>
           <circle cx={cx} cy={cy} r={root} strokeDasharray="2 3"/>
+          {d.insertBottom&&<path d={insertPath} fill="var(--surface)"/>}
+          {!d.insertBottom&&d.insertTop&&<path d={insertPath} fill="none" strokeDasharray="4 3"/>}
           <path d={borePoints.map(([x,y],i)=>`${i?'L':'M'}${cx+x*scale} ${cy-y*scale}`).join(' ')+'Z'} fill="var(--surface)"/>
           <path d={`M${cx-84} ${cy}H${cx+84}M${cx} ${cy-84}V${cy+84}`} strokeDasharray="8 3 2 3" strokeWidth=".6"/>
         </g>
         <Callout ids="A/M/N" points={`${cx-outer*.7},${cy-outer*.7} 60,40 16,40`} x="16" y="28" label="HTD grooves"/>
         <Callout ids="F" points={`${cx+pitch*.7},${cy-pitch*.7} 240,40 284,40`} x="264" y="28" label="Pitch circle"/>
         <Callout ids="C/K/L" points={`${cx+hex},${cy} 236,154 284,154`} x="240" y="140" label="Hex bore"/>
+        {p.insertCount>0&&<Callout ids="V/W" points={`${cx+insertRadius*.7},${cy-insertRadius*.7} 240,70 284,70`} x="264" y="58" label="WCP insert"/>}
         <Callout ids="G" points={`${cx-root*.6},${cy+root*.7} 60,222 16,222`} x="16" y="239" label="Tooth roots"/>
         {p.flanges>0&&<Callout ids="H/J" points={`${cx+flange*.7},${cy+flange*.7} 240,222 284,222`} x="254" y="239" label="Flange"/>}
         <Dim id="E" x1={cx-outer} x2={cx+outer} y={267} fromY={cy+outer+6} label={`Ø ${formatLength(d.outsideDiameter,unit)}`}/>
@@ -70,21 +78,24 @@ export default function Diagram({params:p,active,unit='mm'}){
           {edgeLevels.map((level,i)=><line key={i} x1={sx+left} x2={sx+body-right} y1={sy-level*scale} y2={sy-level*scale} strokeWidth=".5"/>)}
           {hasBottom&&<rect x={sx} y={sy-flange} width={f} height={flange*2} fill="var(--surface)"/>}
           {hasTop&&<rect x={sx+body-f} y={sy-flange} width={f} height={flange*2} fill="var(--surface)"/>}
-          {p.variant==='tube'&&<rect x={sx+body} y={sy-p.extensionDiameter*scale/2} width={total-body} height={p.extensionDiameter*scale} fill="var(--drawing-fill)"/>}
-          {p.variant==='bearing'&&<path d={`M${sx+body} ${sy-p.coneBase*scale/2}L${sx+total} ${sy-p.coneTip*scale/2}V${sy+p.coneTip*scale/2}L${sx+body} ${sy+p.coneBase*scale/2}Z`} fill="var(--drawing-fill)"/>}
+          {p.tubeEnabled&&<rect x={sx+body} y={sy-p.extensionDiameter*scale/2} width={p.extensionLength*scale} height={p.extensionDiameter*scale} fill="var(--drawing-fill)"/>}
+          {p.coneEnabled&&<path d={`M${sx+body+(p.tubeEnabled?p.extensionLength*scale:0)} ${sy-p.coneBase*scale/2}L${sx+total} ${sy-p.coneTip*scale/2}V${sy+p.coneTip*scale/2}L${sx+body+(p.tubeEnabled?p.extensionLength*scale:0)} ${sy+p.coneBase*scale/2}Z`} fill="var(--drawing-fill)"/>}
+          {d.insertBottom&&<rect x={sx} y={sy-insertRadius} width={insertDepth} height={insertRadius*2} fill="var(--surface)"/>}
+          {d.insertTop&&<rect x={sx+total-insertDepth} y={sy-insertRadius} width={insertDepth} height={insertRadius*2} fill="var(--surface)"/>}
           <path d={`M${sx} ${sy-boreHalf}H${sx+total}M${sx} ${sy+boreHalf}H${sx+total}`} strokeDasharray="4 3"/>
           <path d={`M${sx-18} ${sy}H${sx+total+18}`} strokeDasharray="8 3 2 3" strokeWidth=".6"/>
         </g>
         {p.flanges>0&&<Callout ids={p.flanges===1?'I/O':'I'} points={`${sx+(hasBottom?f/2:body-f/2)},${sy-flange} 60,40 16,40`} x="16" y="28" label={p.flanges===1?`${p.flangeSide} flange`:'Flange thickness'}/>}
         <Dim id="D" x1={sx+left} x2={sx+body-right} y={60} fromY={sy-outer-5} label={`${formatLength(d.faceWidth,unit)} face`}/>
         <Dim id="B" x1={sx} x2={sx+total} y={267} fromY={sy+Math.max(outer,p.flanges?flange:0)+6} label={`${formatLength(p.width,unit)} overall`}/>
-        {d.extension>0&&<><Callout ids="P" points={`${sx+body},${sy-(p.variant==='tube'?p.extensionDiameter:p.coneBase)*scale/2} 240,40 284,40`} x="264" y="28" label={p.variant==='tube'?'Insert OD':'Base OD'}/><Callout ids="Q" points={`${sx+body+(total-body)/2},${sy+(p.variant==='tube'?p.extensionDiameter:p.coneTip)*scale/2} 240,222 284,222`} x="264" y="239" label={p.variant==='tube'?'Insert length':'Cone length'}/></>}
-        {p.variant==='bearing'&&<Callout ids="R" points={`${sx+total},${sy-p.coneTip*scale/2} 244,154 284,154`} x="264" y="140" label="Contact OD"/>}
+        {p.tubeEnabled&&<><Callout ids="P" points={`${sx+body},${sy-p.extensionDiameter*scale/2} 240,40 284,40`} x="264" y="28" label="Insert OD"/><Callout ids="Q" points={`${sx+body+p.extensionLength*scale/2},${sy+p.extensionDiameter*scale/2} 240,222 284,222`} x="264" y="239" label="Insert length"/></>}
+        {p.coneEnabled&&<><Callout ids="R" points={`${sx+body+(p.tubeEnabled?p.extensionLength*scale:0)},${sy-p.coneBase*scale/2} 230,54 284,54`} x="264" y="42" label="Base OD"/><Callout ids="S" points={`${sx+total-p.coneLength*scale/2},${sy+p.coneTip*scale/2} 240,205 284,205`} x="264" y="222" label="Cone length"/><Callout ids="T" points={`${sx+total},${sy-p.coneTip*scale/2} 244,154 284,154`} x="264" y="140" label="Contact OD"/></>}
+        {p.insertCount>0&&<Callout ids="V/W/X" points={`${d.insertBottom?sx+insertDepth:sx+total-insertDepth},${sy+insertRadius} 64,222 16,222`} x="16" y="239" label="Press-fit pocket"/>}
       </svg>
-      <figcaption>SIDE · {p.variant==='tube'?'TUBE INSERT':p.variant==='bearing'?'BEARING CONE':'STANDARD'}</figcaption>
+      <figcaption>SIDE · {featureName(p).replace(/-/g,' ').toUpperCase()}</figcaption>
       </figure>
     </div>
     <dl className="dimension-schedule" aria-label="Complete feature dimensions">{rows.map(row=><div key={row.id} className={row.fields.includes(active)?'highlighted':''}><dt><b>{row.id}</b>{row.label}</dt><dd>{row.value}</dd></div>)}</dl>
-    <p className="drawing-note">Letter callouts match the dimensions below. Both views use the same scale and the model's curved HTD profile. Flanges shown transparent. Tooth pitch stays in millimeters.</p>
+    <p className="drawing-note">Letter callouts match the dimensions below. Both views use the same scale and the model's curved HTD profile. WCP pockets reproduce the WCP-1121 outside profile with the selected radial allowance. Flanges shown transparent.</p>
   </div>;
 }

@@ -1,4 +1,4 @@
-# Pully-Generator / Pulley Lab
+# Pulley Generator / Pulley Lab
 
 The complete browser-based HTD timing pulley configurator lives in this
 repository. React and Three.js provide the interface and preview; Replicad and
@@ -7,23 +7,23 @@ Open CASCADE WebAssembly generate solid CAD in a background browser worker.
 ## Hosting and builds
 
 This tool is part of the Team 1241 resources site. Its self-contained production
-HTML lives in `docs/pully-generator/` and deploys with the existing GitHub Pages setup.
+HTML lives in `docs/pulley-generator/` and deploys with the existing GitHub Pages setup.
 There is no separate app host, CAD service, API key, or backend.
 
 From the repository root, using Node.js 22.12 or later:
 
 ```powershell
-npm.cmd ci --prefix utilities/pully-generator
-node scripts/update-pully-generator.mjs
+npm.cmd ci --prefix utilities/pulley-generator
+node scripts/update-pulley-generator.mjs
 ```
 
-Commit the source changes and rebuilt `docs/pully-generator/` files together.
+Commit the source changes and rebuilt `docs/pulley-generator/` files together.
 The build script uses only the source and dependencies inside this repository.
 
 For development:
 
 ```powershell
-npm.cmd run dev --prefix utilities/pully-generator
+npm.cmd run dev --prefix utilities/pulley-generator
 ```
 
 The resources return link targets the parent site's index. The production HTML
@@ -36,7 +36,11 @@ site; the app imports the shared behavior from `docs/theme.js`.
 - HTD 5M and 3M pulleys, 12–100 teeth, with dimensional validation.
 - Inch and millimeter inputs, drawings, measurements, and CAD exports.
 - 1/2-inch and 3/8-inch hex bores with configurable clearance and orientation.
-- Standard, tube-insert, and bearing-cone variants with flange options.
+- Independent tube-insert and bearing-cone features that can be combined, with flange options.
+- WCP-1121 1/2-inch hex insert pockets on the bottom, top, or both sides,
+  with adjustable radial press allowance and an arbor-press lead-in.
+- Print optimization with 0.30 mm default bore clearance, bore-entry chamfers,
+  and printable wall, face, flange, and end-feature checks.
 - Interactive 3D preview, orthographic views, projection and display controls.
 - Front and side drawings, light/dark themes, and STEP and binary STL export.
 - An Inventor import guide; native IPT generation is not implemented.
@@ -53,8 +57,8 @@ your hardware.
 ## Verification
 
 ```powershell
-npm.cmd test --prefix utilities/pully-generator
-node scripts/update-pully-generator.mjs
+npm.cmd test --prefix utilities/pulley-generator
+node scripts/update-pulley-generator.mjs
 ```
 
 Tests cover CAD geometry and exports, dimensional validation, unit conversion,

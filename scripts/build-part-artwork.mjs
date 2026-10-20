@@ -3,12 +3,12 @@ import {createRequire} from 'node:module';
 import vm from 'node:vm';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {setOC,importSTEP} from '../utilities/pully-generator/node_modules/replicad/dist/replicad.js';
+import {setOC,importSTEP} from '../utilities/pulley-generator/node_modules/replicad/dist/replicad.js';
 
 const source=process.argv[2];
 if(!source)throw new Error('Usage: node scripts/build-part-artwork.mjs <STEP file>');
 const require=createRequire(import.meta.url);
-const loaderPath=fileURLToPath(new URL('../utilities/pully-generator/node_modules/replicad-opencascadejs/src/replicad_single.js',import.meta.url));
+const loaderPath=fileURLToPath(new URL('../utilities/pulley-generator/node_modules/replicad-opencascadejs/src/replicad_single.js',import.meta.url));
 const loader=readFileSync(loaderPath,'utf8').replace(/export default Module;?\s*$/,'Module;');
 const context=vm.createContext({require,process,console,Buffer,WebAssembly,TextDecoder,TextEncoder,Uint8Array,ArrayBuffer,Blob,setTimeout,clearTimeout,__dirname:path.dirname(loaderPath),__filename:loaderPath});
 const init=vm.runInContext(loader,context);

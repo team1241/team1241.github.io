@@ -7,11 +7,12 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {setOC,measureVolume,importSTEP} from 'replicad';
 import {buildPulley} from '../src/model.mjs';
-import {defaults,dimensions,validate} from '../src/parameters.mjs';
+import {defaults,dimensions,validate,fileName} from '../src/parameters.mjs';
 import {parametersForDisplay,parametersForModel,formatLength} from '../src/units.mjs';
 import {exportPulley} from '../src/exports.mjs';
 import {profileDeviations} from '../scripts/check-profile-arcs.mjs';
 import {pulleyOutline,outlineSvgPath} from '../src/profile.mjs';
+import {wcpInsertOutline,wcpInsertProfile,WCP_INSERT_OUTER_RADIUS,WCP_INSERT_POCKET_DEPTH} from '../src/wcp-insert-profile.mjs';
 
 // Integrate an SVG outline independently using the SVG endpoint-to-center arc
 // conversion. Compare its enclosed area with the volume of an extruded CAD part.
@@ -53,7 +54,7 @@ mkdirSync('test-output',{recursive:true});
 
 test('curved drawing outline matches CAD cross section for both HTD profiles and groove adjustments',()=>{
   for(const pitch of [3,5])for(const offset of [0,.2,-.2]){
-    const p={...defaults,pitch,teeth:36,shaft:9.525,flanges:0,grooveWidth:offset,grooveDepth:offset};
+    const p={...defaults,pitch,teeth:36,shaft:9.525,flanges:0,grooveWidth:offset,grooveDepth:offset,printOptimized:false};
     const path=outlineSvgPath(pulleyOutline(p),142,169,3.2);
     assert.ok(!/NaN|Infinity/.test(path));
     assert.equal((path.match(/A/g)||[]).length,p.teeth*7);
@@ -70,11 +71,11 @@ test('nominal dimensions and impossible shaft/width combinations',()=>{
   assert.equal(validate(defaults).length,0);
   assert.ok(Math.abs(dimensions(defaults).outsideDiameter-37.05418634)<1e-6);
   assert.equal(dimensions(defaults).faceWidth,15);
-  assert.equal(dimensions(defaults).boreAF,12.85);
+  assert.equal(dimensions(defaults).boreAF,13);
   assert.ok(validate({...defaults,teeth:12,pitch:3}).length);
-  assert.ok(validate({...defaults,variant:'tube',width:8}).length);
+  assert.ok(validate({...defaults,tubeEnabled:true,width:8}).length);
   assert.ok(validate({...defaults,teeth:24.5}).length);
-  assert.ok(validate({...defaults,variant:'bearing',coneTip:35}).length);
+  assert.ok(validate({...defaults,coneEnabled:true,coneTip:35}).length);
 });
 test('fitted groove arcs preserve published 3M and 5M profile within 0.002 mm',()=>{
   for(const result of profileDeviations())assert.ok(result.deviation<0.002,JSON.stringify(result));
@@ -115,9 +116,9 @@ test('groove and bore detail controls affect valid solids',()=>{
   assert.ok(shape.mesh().triangles.length>100);
   shape.delete();
 });
-for(const variant of ['standard','tube','bearing'])for(const shaft of [12.7,9.525]) {
+for(const [variant,features,width] of [['standard',{},18],['tube',{tubeEnabled:true},28],['bearing-cone',{coneEnabled:true},23],['tube-cone',{tubeEnabled:true,coneEnabled:true},33]])for(const shaft of [12.7,9.525]) {
   test(`${variant} ${shaft} mm shaft is solid, correctly sized, and exports STEP and watertight STL`,async()=>{
-    const p={...defaults,variant,shaft,width:variant==='tube'?28:variant==='bearing'?23:18};
+    const p={...defaults,...features,shaft,width};
     const shape=buildPulley(p);
     assert.ok(measureVolume(shape)>0);
     const bounds=shape.boundingBox.bounds;
@@ -143,6 +144,44 @@ for(const variant of ['standard','tube','bearing'])for(const shaft of [12.7,9.52
     shape.delete();
   });
 }
+test('3D print optimization adds bore chamfers and rejects fragile features',()=>{
+  const plain=buildPulley({...defaults,printOptimized:false}),optimized=buildPulley(defaults);
+  assert.ok(measureVolume(optimized)<measureVolume(plain),'bore-entry chamfers should remove material');
+  plain.delete();optimized.delete();
+  assert.ok(validate({...defaults,flangeThickness:1}).some(error=>error.includes('flange thickness')));
+  assert.ok(validate({...defaults,tubeEnabled:true,extensionLength:1}).some(error=>error.includes('insert length')));
+  assert.ok(validate({...defaults,coneEnabled:true,coneLength:1}).some(error=>error.includes('cone length')));
+  assert.equal(validate({...defaults,tubeEnabled:true,coneEnabled:true,width:33}).length,0);
+});
+test('WCP-1121 pockets reproduce the official profile and enforce compatible geometry',()=>{
+  const radii=wcpInsertProfile().map(([x,y])=>Math.hypot(x,y));
+  assert.ok(Math.abs(Math.max(...radii)-WCP_INSERT_OUTER_RADIUS)<.001);
+  assert.ok(Math.abs(Math.min(...radii)-8.8)<.001);
+  const nominal=wcpInsertOutline(),allowed=wcpInsertOutline(.1);
+  assert.equal(nominal.commands.length,60);
+  assert.ok(Math.abs(Math.hypot(...allowed.start)-Math.hypot(...nominal.start)-.1)<1e-9);
+  assert.equal(WCP_INSERT_POCKET_DEPTH,6.5);
+  assert.ok(validate({...defaults,shaft:9.525,insertCount:1}).some(error=>error.includes('1/2-inch')));
+  assert.ok(validate({...defaults,insertCount:2,width:13}).some(error=>error.includes('center web')));
+  assert.ok(validate({...defaults,insertCount:1,insertSide:'top',tubeEnabled:true,width:28}).some(error=>error.includes('cannot be combined')));
+  assert.ok(fileName({...defaults,insertCount:2}).includes('wcp-inserts-both'));
+});
+test('one-side and both-side WCP insert pockets make valid press-fit pulley solids',()=>{
+  const plain=buildPulley(defaults),plainVolume=measureVolume(plain);plain.delete();
+  let oneVolume;
+  for(const [label,configuration] of [['bottom',{insertCount:1,insertSide:'bottom'}],['top',{insertCount:1,insertSide:'top'}],['both',{insertCount:2}]]){
+    const p={...defaults,...configuration},shape=buildPulley(p),volume=measureVolume(shape);
+    assert.equal(validate(p).length,0,label);
+    assert.ok(volume>0&&volume<plainVolume,label);
+    if(label==='bottom')oneVolume=volume;
+    if(label==='both')assert.ok(volume<oneVolume,'two pockets should remove more material than one');
+    const bounds=shape.boundingBox.bounds;
+    assert.ok(Math.abs(bounds[1][2]-bounds[0][2]-p.width)<1e-4);
+    const mesh=shape.mesh({tolerance:.06,angularTolerance:.15});
+    assert.ok(mesh.triangles.length>100);
+    shape.delete();
+  }
+});
 test('3M profile, flange modes, and changed tooth count export correctly',()=>{
   for(const flanges of [0,1,2]){
     const p={...defaults,pitch:3,teeth:36,shaft:9.525,flanges,width:16};const shape=buildPulley(p);

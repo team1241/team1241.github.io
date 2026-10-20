@@ -112,3 +112,11 @@ main{max-width:1680px;padding:28px 32px 0}
   .viewport{height:340px}
   .diagram-panel .feature-drawing{padding:16px}
 }
+
+.feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.print-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;margin-bottom:16px;border:1px solid var(--border);border-radius:6px;background:var(--surface-alt)}
+.print-toggle>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.print-toggle strong{font-size:13px;color:var(--text)}
+.print-toggle small{font-size:11px;line-height:1.45;color:var(--secondary)}
+.print-toggle button{flex:none;min-width:48px;padding:7px 10px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--secondary);font-size:12px}
+.print-toggle button.selected{border-color:#d9ad51;background:var(--accent-surface);color:var(--text)}

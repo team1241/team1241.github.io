@@ -15,32 +15,38 @@ Everything under `docs/` is served as-is at https://team1241.github.io/.
 
 ## Utilities
 
-Pully-Generator is included in this repository under **Utilities**. Its complete
-source, dependency lockfile, tests, and profile attribution live in
-`utilities/pully-generator/`. Its self-contained HTML app and profile license
-live in `docs/pully-generator/` and deploy
-with this site. No separate hosting or Pully-Generator checkout is required.
+The repository includes two separate browser CAD tools under **Utilities**:
+
+- Pulley Generator source in `utilities/pulley-generator/`, deployed from
+  `docs/pulley-generator/`.
+- Hex Spacer Generator source in `utilities/spacer-generator/`, deployed from
+  `docs/spacer-generator/`.
+
+Each tool includes its own dependency lockfile and tests. No separate hosting,
+CAD service, API key, or app checkout is required.
 
 To install dependencies and rebuild the included app from the repository root:
 
 ```powershell
-npm.cmd ci --prefix utilities/pully-generator
-node scripts/update-pully-generator.mjs
+npm.cmd ci --prefix utilities/pulley-generator
+npm.cmd ci --prefix utilities/spacer-generator
+node scripts/update-pulley-generator.mjs
+node scripts/update-spacer-generator.mjs
 ```
 
-The script builds the local source into `docs/pully-generator/`. Commit the
-source and rebuilt files together; the existing `/docs` Pages deployment needs
-no additional build step. See `utilities/pully-generator/README.md` for
-development and test commands.
+The scripts build the local sources into their matching `docs/` folders. Commit
+the source and rebuilt files together; the existing `/docs` Pages deployment
+needs no additional build step. See each utility's README for development and
+test commands.
 
-The Utilities card opens `docs/pully-generator/index.html` explicitly. The app
-embeds its scripts, styles, CAD worker, and WebAssembly, allowing local file
-previews as well as GitHub Pages hosting.
+Each Utilities card opens its matching `index.html` explicitly. Both apps embed
+their scripts, styles, CAD worker, and WebAssembly, allowing local file previews
+as well as GitHub Pages hosting.
 
 ## Theme
 
 The home page's light/dark toggle controls the whole site, including every
-lesson and Pully-Generator. The choice is remembered in browser storage and
+lesson and both generators. The choice is remembered in browser storage and
 carried on internal links for file previews. Without a saved choice, the site
 follows the system theme. Shared behavior is in `docs/theme.js`; lesson and
 home-page colors are in `docs/theme.css`.
@@ -56,8 +62,8 @@ node --test tests/*.test.cjs
 
 ## Loading messages and search surprises
 
-Pully-Generator's loading messages live in
-`utilities/pully-generator/src/loading-messages.mjs`. They cover FRC, subteams,
+The generator's loading messages live in
+`utilities/pulley-generator/src/loading-messages.mjs`. They cover FRC, subteams,
 engineering, pop culture, and team lore, and rotate randomly during rebuilds.
 
 The home-page search includes at least three original surprises for each of mechanical,
